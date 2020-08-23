@@ -13,6 +13,7 @@ import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scoreboard.Scoreboard;
 
 import main.java.com.elytraforce.mttt2.Main;
 import main.java.com.elytraforce.mttt2.enums.GamePlayerRoleEnum;
@@ -31,9 +32,13 @@ public class Arena {
 	//game states
 	private ArenaCountdown arenaCountdown;
 	private ArenaPreparationCountdown arenaPreparationCountdown;
+	private ArenaGame arenaGame;
+	private ArenaEndingCountdown arenaEndingCountdown;
 	//locations
 	private Location LOBBY_POINT;
 	private Location MAP_POINT;
+	
+	public HashMap<Player, Scoreboard> scoreboardMap;
 	
 	
 	private Main mainClass;
@@ -52,6 +57,8 @@ public class Arena {
 		
 		this.arenaCountdown = new ArenaCountdown(this);
 		this.arenaPreparationCountdown = new ArenaPreparationCountdown(this);
+		this.arenaGame = new ArenaGame(this);
+		this.arenaEndingCountdown = new ArenaEndingCountdown(this);
 		this.mainClass = main;
 
 		//TODO: these need to be retrieved from a config
@@ -65,6 +72,10 @@ public class Arena {
 	//THIS METHOD MUST BE RAN AT THE *END* OF MAP ENDING STATE.
 	public void reset() {
 
+		for (GamePlayer player : this.arenaPlayers) {
+			player.getPlayer().kickPlayer("DEBUG KICK MESSAGE!");
+			//You will have to send them to hub instead of kicking them off.
+		}
 		this.arenaPlayers.clear();
 		this.gameState = GameStateEnum.WAITING;
 		
@@ -72,7 +83,12 @@ public class Arena {
 
 	}
 	
+	
 	//Getters and setters
+	
+	public Main getMain() {
+		return this.mainClass;
+	}
 	
 	public Arena getArena() {
 		return this;
@@ -132,12 +148,20 @@ public class Arena {
 		return this.requiredPlayers;
 	}
 	
+	public ArenaEndingCountdown getArenaEndingCountdown() {
+		return this.arenaEndingCountdown;
+	}
+	
 	public ArenaCountdown getArenaCountdown() {
 		return this.arenaCountdown;
 	}
 	
  	public ArenaPreparationCountdown getArenaPreparationCountdown() {
  		return this.arenaPreparationCountdown;
+ 	}
+ 	
+ 	public ArenaGame getArenaGame() {
+ 		return this.arenaGame;
  	}
  	
  	//Methods for player shit
@@ -182,8 +206,31 @@ public class Arena {
  		}
  	}
  	
+ 	public GamePlayerRoleEnum checkWinner() {
+ 		if (this.arenaPlayers.size() < this.requiredPlayers) {
+ 			return GamePlayerRoleEnum.NONE;
+ 		}
+ 		
+ 		if (this.getArenaPlayers(GamePlayerRoleEnum.TRAITOR).size() == 0) {
+ 			return GamePlayerRoleEnum.INNOCENT;
+ 		}
+ 		
+ 		if (this.getArenaPlayers(GamePlayerRoleEnum.INNOCENT).size() + this.getArenaPlayers(GamePlayerRoleEnum.DETECTIVE).size() == 0) {
+ 			return GamePlayerRoleEnum.TRAITOR;
+ 		}
+ 		
+		return null;
+ 	}
+ 	
  	public void removePlayer(GamePlayer gamePlayer) {
  		this.arenaPlayers.remove(gamePlayer);
+ 		
+ 		//TODO: CHeck if victory method here.
+ 		if (!checkWinner().equals(null)) {
+ 			//instantly run an ArenaEndingCountdown
+ 			this.arenaEndingCountdown.start(10, checkWinner());
+ 		}
+ 		
  	}
  	
  	

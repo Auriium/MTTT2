@@ -24,8 +24,6 @@ public class ArenaPreparationCountdown extends BukkitRunnable{
 		//method here should handle players being teleported to the arena.
 		this.arena.sendArenaToGame();
 		
-		//Maybe roles should be assigned pre game actually beginning
-		
 		//guns also need to be spawned into the map here
 
 	}
@@ -54,8 +52,8 @@ public class ArenaPreparationCountdown extends BukkitRunnable{
 		if (time == 0) {
 			cancel();
 			
-			//start the game
-			//TODO: arena.getGame().start();
+			//start the game, TODO: in the future this value for arena length should be gathered from config.
+			arena.getArenaGame().start(180);
 		
 			return;
 		}

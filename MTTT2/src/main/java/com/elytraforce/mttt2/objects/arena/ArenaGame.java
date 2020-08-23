@@ -4,6 +4,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import main.java.com.elytraforce.mttt2.Main;
+import main.java.com.elytraforce.mttt2.enums.GamePlayerRoleEnum;
 import main.java.com.elytraforce.mttt2.enums.GameStateEnum;
 
 public class ArenaGame extends BukkitRunnable{
@@ -21,12 +22,9 @@ public class ArenaGame extends BukkitRunnable{
 		this.time = time;
 		this.runTaskTimer(Main.getMain(), 0L, 20L);
 		
-		//method here should handle players being teleported to the arena.
-		this.arena.sendArenaToGame();
-		
-		//Maybe roles should be assigned pre game actually beginning
-		
-		//guns also need to be spawned into the map here
+		//Display roles to players here.
+		arena.actionAssignRoles();
+		arena.actionSendGameStartTitle();
 
 	}
 	
@@ -41,23 +39,24 @@ public class ArenaGame extends BukkitRunnable{
 	@Override
 	public void run() {
 		
+		//TODO: EVERY SECOND SEND A TRAITOR GLOW PACKET PER TRAITOR FOR EVERY TRAITOR.
+		
 		if (arena.getArenaPlayers().size() < arena.getRequiredPlayers()) {
 			cancel();
 			
-			//game is over 
-			arena.setArenaState(GameStateEnum.WAITING);
-			arena.broadcastMessage(ChatColor.RED + "There are too few players. Countdown stopped.");
-			arena.sendArenaToLobby();
+			//game is over because everyone left
+			arena.getArenaEndingCountdown().start(10, GamePlayerRoleEnum.NONE);
 			return; 
 		}
 
-		// If time is 0 start the round!
+		// If time is 0 the innocents by DEFAULT WIN! The only time traitors should win is using
+		//the playerkillplayerevent. A innocent win is also a detective win.
 		
 		if (time == 0) {
 			cancel();
 			
-			//start the game
-			//TODO: arena.getGame().start();
+			
+			arena.getArenaEndingCountdown().start(10, GamePlayerRoleEnum.INNOCENT);
 		
 			return;
 		}
@@ -67,9 +66,9 @@ public class ArenaGame extends BukkitRunnable{
 		
 		if (time % 15 == 0 || time <= 10) {
 				if (time != 1) {
-					arena.broadcastMessage(ChatColor.AQUA + "Game will start in " + time + " seconds.");
+					arena.broadcastMessage(ChatColor.AQUA + "Game ends in " + time + " seconds.");
 				} else {
-					arena.broadcastMessage(ChatColor.AQUA + "Game will start in " + time + " second.");
+					arena.broadcastMessage(ChatColor.AQUA + "Game ends in " + time + " second.");
 				}
 		}
 

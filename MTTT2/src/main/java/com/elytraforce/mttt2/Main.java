@@ -16,7 +16,7 @@ public class Main extends JavaPlugin {
 	//most of the time i will pass the main class through a constructor
 	//however in this instance it is required to use a static
 	
-	private static Main instance;
+	public static Main instance;
 	
 	//Commands
 	
