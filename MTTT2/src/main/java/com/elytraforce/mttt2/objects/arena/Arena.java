@@ -43,7 +43,7 @@ public class Arena {
 	
 	private Main mainClass;
 	
-	public Arena(String id, Location lobbyLocation, Location mapLocation, Main main) {
+	public Arena(String id, Location lobbyLocation, Location mapLocation) {
 
 		this.id = id;
 		this.arenaPlayers = new ArrayList<GamePlayer>();
@@ -59,7 +59,7 @@ public class Arena {
 		this.arenaPreparationCountdown = new ArenaPreparationCountdown(this);
 		this.arenaGame = new ArenaGame(this);
 		this.arenaEndingCountdown = new ArenaEndingCountdown(this);
-		this.mainClass = main;
+		this.mainClass = Main.getMain();
 
 		//TODO: these need to be retrieved from a config
 		this.requiredPlayers = 2;

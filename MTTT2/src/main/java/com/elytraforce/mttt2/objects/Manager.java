@@ -38,7 +38,7 @@ public class Manager {
 		
 		//TODO: in the future, "test" replaced with the id of the map read from config as well.
 		
-		 new Arena("Test", LOBBY_POINT, TEST_MINIGAME_POINT, Main.getMain()); 
+		 new Arena("Test", LOBBY_POINT, TEST_MINIGAME_POINT); 
 		 
 		 
 		 // The arena is added to the arenas list in the constructor of the

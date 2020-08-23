@@ -33,6 +33,7 @@ public class Main extends JavaPlugin {
 		
 		initializeClasses();
 		initializeCommands();
+		messageHandlerAssist();
 	}
 	
 	@Override 
@@ -48,6 +49,12 @@ public class Main extends JavaPlugin {
 	
 	private void initializeCommands() {
 		this.getCommand("ttt").setExecutor(this.tttcommand);
+	}
+	
+	private void messageHandlerAssist() {
+		this.messageHandler.getMessageFetcher().options().copyDefaults(true);
+		this.messageHandler.saveMessageFile();
+		this.messageHandler.reloadMessageFile();
 	}
 	
 	// 
