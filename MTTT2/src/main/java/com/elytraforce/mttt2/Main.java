@@ -33,7 +33,7 @@ public class Main extends JavaPlugin {
 		
 		initializeClasses();
 		initializeCommands();
-		messageHandlerAssist();
+
 	}
 	
 	@Override 
@@ -43,18 +43,13 @@ public class Main extends JavaPlugin {
 	
 	private void initializeClasses() {
 		this.messageHandler = new MessageHandler(this);
+		this.messageHandler.createCustomConfig();
 		this.titleActionbarHandler = new TitleActionbarHandler(this);
 		this.tttcommand = new TTTCommand(this);
 	}
 	
 	private void initializeCommands() {
 		this.getCommand("ttt").setExecutor(this.tttcommand);
-	}
-	
-	private void messageHandlerAssist() {
-		this.messageHandler.getMessageFetcher().options().copyDefaults(true);
-		this.messageHandler.saveMessageFile();
-		this.messageHandler.reloadMessageFile();
 	}
 	
 	// 
