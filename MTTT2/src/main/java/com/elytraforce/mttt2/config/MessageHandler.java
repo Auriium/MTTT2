@@ -23,6 +23,7 @@ public class MessageHandler {
     }
 
     public void createCustomConfig() {
+    	mainClass.printDebugLine("creating messages.yml");
         customConfigurationFile = new File(mainClass.getDataFolder(), "messages.yml");
         if (!customConfigurationFile.exists()) {
             customConfigurationFile.getParentFile().mkdirs();
