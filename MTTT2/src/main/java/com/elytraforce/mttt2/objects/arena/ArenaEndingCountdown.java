@@ -23,6 +23,7 @@ public class ArenaEndingCountdown extends BukkitRunnable{
 		
 		//Now we need to tell everyone who won!
 		
+		arena.getMain().getSoundHandler().playSound(arena, "entity.experience_orb.pickup", 1, 1);
 		switch (winner) {
 		case INNOCENT:
 			arena.getMain().getTitleActionbarHandler().sendTitle(arena, "&4&lGame Over!", "&7The &aInnocents &7win!");
@@ -42,8 +43,8 @@ public class ArenaEndingCountdown extends BukkitRunnable{
 			break;
 		}
 		
-		
-		
+		//TODO: now tell everyone how many rdm's they did and punish them accordingly.
+		this.arena.actionCountRDM();
 
 		arena.setArenaState(GameStateEnum.ENDING);
 		this.time = time;

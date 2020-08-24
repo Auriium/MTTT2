@@ -28,17 +28,17 @@ public class Manager {
 	public static void setup() {
 		//initialize all the new arenas from the config
 		try {
+			Main.getMain().getMapConfigHandler().readMaps();
 			Main.getMain().getMapConfigHandler().readArenas();
 			Manager.getInstance().getArenas().get(0);
 		} catch (NullPointerException e) {
-			Main.getMain().printDebugLine("[MTTT2] No arenas exist! You will have to reload the plugin"
-					+ " to enable gameplay after creating a map!");
+			Main.getMain().printDebugLine("[MTTT2] You have not created any maps. Please create a map and reload the plugin!");
 			return;
 		}
 		
 		//randomly select one from the list
 		
-		
+		//randint (0, arenas.size)
 
 	}
 	
@@ -88,6 +88,15 @@ public class Manager {
 	
 	public void removeArena(Arena arena) {
 		this.arenas.remove(arena);
+	}
+	
+	public void addPlayer(Player player) {
+		this.arenas.get(selectedArena).addPlayer(player);
+	}
+	
+	//not really a point to using this i dont think
+	public void removePlayer(Player player) {
+		this.arenas.get(selectedArena).removePlayer(player);
 	}
 	
 	//TODO: not sure if we are going to use the reset methods for tasks or just create a new arena in the first place.

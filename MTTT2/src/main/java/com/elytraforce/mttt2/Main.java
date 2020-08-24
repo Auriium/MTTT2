@@ -3,9 +3,13 @@ package main.java.com.elytraforce.mttt2;
 
 import org.bukkit.plugin.java.JavaPlugin;
 
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.ProtocolManager;
+
 import main.java.com.elytraforce.mttt2.commands.TTTCommand;
 import main.java.com.elytraforce.mttt2.config.MapConfigHandler;
 import main.java.com.elytraforce.mttt2.config.MessageHandler;
+import main.java.com.elytraforce.mttt2.listeners.PlayerJoinLeaveEvent;
 import main.java.com.elytraforce.mttt2.objects.Manager;
 import main.java.com.elytraforce.mttt2.utils.SoundHandler;
 import main.java.com.elytraforce.mttt2.utils.TitleActionbarHandler;
@@ -21,6 +25,7 @@ public class Main extends JavaPlugin {
 	//however in this instance it is required to use a static
 	
 	public static Main instance;
+	private ProtocolManager protocolManager;
 	
 	//Commands
 	
@@ -32,15 +37,18 @@ public class Main extends JavaPlugin {
 	public void onEnable() {
 		Main.instance = this;
 		
-		initializeClasses();
-		initializeCommands();
+		this.protocolManager = ProtocolLibrary.getProtocolManager();
+		
+		this.initializeClasses();
+		this.initializeCommands();
+		this.initializeListeners();
 		
 		//setup main manager
 		Manager.setup();
 
-		
-
+		//initialize protocol shit
 	}
+	
 	
 	@Override 
 	public void onDisable() {
@@ -53,10 +61,8 @@ public class Main extends JavaPlugin {
 		this.messageHandler = new MessageHandler(this);
 		
 		this.soundHandler = new SoundHandler(this);
-		this.messageHandler.createCustomConfig();
 		
 		this.mapConfigHandler = new MapConfigHandler(this);
-		this.mapConfigHandler.createCustomConfig();
 		
 		this.titleActionbarHandler = new TitleActionbarHandler(this);
 		this.tttcommand = new TTTCommand(this);
@@ -66,9 +72,16 @@ public class Main extends JavaPlugin {
 		this.getCommand("ttt").setExecutor(this.tttcommand);
 	}
 	
+	private void initializeListeners() {
+		this.getServer().getPluginManager().registerEvents(new PlayerJoinLeaveEvent(this), this);
+	}
 	// 
 	//
 	//
+	
+	public ProtocolManager getProtocolManager() {
+		return this.protocolManager;
+	}
 	
 	public MapConfigHandler getMapConfigHandler() {
 		return this.mapConfigHandler;

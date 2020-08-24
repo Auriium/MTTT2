@@ -212,7 +212,7 @@ public class Arena {
  		
  		if (!arenaCountdown.isRunning() && arenaPlayers.size() >= requiredPlayers) {
 
- 			arenaCountdown.start(60);
+ 			arenaCountdown.start(30);
 
  		}
  	}
@@ -322,11 +322,13 @@ public class Arena {
 	            			mainClass.getTitleActionbarHandler().sendTitle(player.getPlayer(), "&c&lTRAITOR", "&7Kill all the &aInnocents!");
 	            			mainClass.getSoundHandler().playSound(player, "entity.wolf.howl", 1, 1);
 	            			mainClass.getTitleActionbarHandler().sendActionBar(player.getPlayer(), "&cPress shift twice to open the Traitor Shop!");
+	            			player.addPointFancy(3);
 	            			break;
 	            		case DETECTIVE:
 	            			mainClass.getTitleActionbarHandler().sendTitle(player.getPlayer(), "&9&lDETECTIVE", "&7Protect the &aInnocents");
 	            			mainClass.getSoundHandler().playSound(player, "entity.iron_golem.repair", 1, 1);
 	            			mainClass.getTitleActionbarHandler().sendActionBar(player.getPlayer(), "&cPress shift twice to open the Detective Shop!");
+	            			player.addPointFancy(3);
 	            			break;
 	            		case INNOCENT:
 	            			mainClass.getTitleActionbarHandler().sendTitle(player.getPlayer(), "&a&lINNOCENT", "&7Try to stay alive and kill the &cTraitor!");
@@ -347,6 +349,48 @@ public class Arena {
  		
  		
  		
+ 	}
+ 	
+ 	public void actionCountRDM() {
+ 		new BukkitRunnable() {
+            public void run() {
+            	
+            	for (GamePlayer player : getArena().getArenaPlayers()) {
+         			//count rdm
+            		//in the future, karma will be adjusted per rdm
+            		mainClass.getTitleActionbarHandler().sendTitle(
+            				player.getPlayer(), "&9&l" + player.getPlayer().getDisplayName(), "&7You random killed &c" + player.getRandomKills() + " &7players!");
+        			mainClass.getSoundHandler().playSound(player, "entity.iron_golem.repair", 1, 1);
+         		}
+            }
+        }.runTaskLater(mainClass, (long)30L);
+        
+        new BukkitRunnable() {
+            public void run() {
+            	
+            	for (GamePlayer player : getArena().getArenaPlayers()) {
+         			//now count deaths and adjust deaths
+            		mainClass.getTitleActionbarHandler().sendTitle(
+            				player.getPlayer(), "&9&l" + player.getPlayer().getDisplayName(), "&7And eliminated &c" + player.getRandomKills() + " &7in total!");
+        			mainClass.getSoundHandler().playSound(player, "entity.iron_golem.repair", 1, 1);
+         		}
+            }
+        }.runTaskLater(mainClass, (long)60L);
+        
+        new BukkitRunnable() {
+            public void run() {
+            	
+            	for (GamePlayer player : getArena().getArenaPlayers()) {
+         			//count rdm
+            		//in the future, karma will be adjusted per rdm
+            		//TODO: make this configurable
+            		Integer reward = (player.getKills() - player.getRandomKills()) * 50;
+            		mainClass.getTitleActionbarHandler().sendTitle(
+            				player.getPlayer(), "&9&lRewards", "&7You earned &c" + reward + "$ &7from this match!");
+        			mainClass.getSoundHandler().playSound(player, "entity.iron_golem.repair", 1, 1);
+         		}
+            }
+        }.runTaskLater(mainClass, (long)90L);
  	}
  	
  	public void actionAssignRoles() {

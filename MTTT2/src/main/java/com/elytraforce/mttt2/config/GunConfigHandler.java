@@ -19,8 +19,7 @@ import main.java.com.elytraforce.mttt2.objects.Manager;
 import main.java.com.elytraforce.mttt2.objects.MapObject;
 import main.java.com.elytraforce.mttt2.objects.arena.Arena;
 
-public class MapConfigHandler {
-	public final static Location LOBBY_POINT = new Location(Bukkit.getWorld("world"), 0.0, 10.0, 0.0);
+public class GunConfigHandler {
 	
 	FileConfiguration customConfig = null;
 	File customConfigurationFile = null;
@@ -31,7 +30,7 @@ public class MapConfigHandler {
 	
 	Main mainClass;
 	
-	public MapConfigHandler(Main main){
+	public GunConfigHandler(Main main){
 		//run this here so that if any of the methods are called the maps are read first.
 		this.mainClass = main;
 		this.createCustomConfig();
@@ -45,11 +44,11 @@ public class MapConfigHandler {
 	}
 
     public void createCustomConfig() {
-    	mainClass.printDebugLine("[MTTT2] Initializing maps.yml");
-        customConfigurationFile = new File(mainClass.getDataFolder(), "maps.yml");
+    	mainClass.printDebugLine("[MTTT2] Initializing guns.yml");
+        customConfigurationFile = new File(mainClass.getDataFolder(), "guns.yml");
         if (!customConfigurationFile.exists()) {
             customConfigurationFile.getParentFile().mkdirs();
-            mainClass.saveResource("maps.yml", false);
+            mainClass.saveResource("guns.yml", false);
          }
 
         customConfig= new YamlConfiguration();
@@ -68,11 +67,11 @@ public class MapConfigHandler {
     //however this should act like one
     public ConfigurationSection getMapSection() {
     	
-    	if (!this.getConfigFetcher().isConfigurationSection("Maps")) {
-    		this.mapSection = mainClass.getMapConfigHandler().getConfigFetcher().createSection("Maps");
+    	if (!this.getConfigFetcher().isConfigurationSection("Guns")) {
+    		this.mapSection = mainClass.getMapConfigHandler().getConfigFetcher().createSection("Guns");
     	}
     	
-    	this.mapSection = this.getConfigFetcher().getConfigurationSection("Maps");
+    	this.mapSection = this.getConfigFetcher().getConfigurationSection("Guns");
     	
     	return this.mapSection;
     }
@@ -91,39 +90,7 @@ public class MapConfigHandler {
     }
     
     
-    //Map related stuff
-    
-    public MapObject getMapFromString(String string) {
-    	for (MapObject object : this.MapList) {
-    		if (object.getId().equals(string)) {
-    			return object;
-    		}
-    	}
-		return null;
-    }
-	
-	public void readArenas() {
-		
-		for (MapObject mapObject : this.MapList) {
-			new Arena(mapObject.getId(), MapConfigHandler.LOBBY_POINT, mapObject.getSpawn(), mapObject.getGunLocations());
-			mainClass.printDebugLine("[MTTT2] Registered arena " + mapObject.getId());
-		}
-		
-		
-		return;
-	}
-	
-	public void readMaps() {
-		
-		for (String path : this.getConfigFetcher().getConfigurationSection("Maps").getKeys(false)) {
-
-			MapObject readMap = new MapObject(mainClass).initialize(path);
-			MapList.add(readMap);
-
-		}
-		
-		
-		return;
-	}
+    //Please have a readGunObjectFromConfig thing as well as a loadGunObjects system here, similar
+    //to how map objects work.
 	
 }

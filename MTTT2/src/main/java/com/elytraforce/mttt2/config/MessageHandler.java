@@ -16,6 +16,7 @@ public class MessageHandler {
 	
 	public MessageHandler(Main main){
 		this.mainClass = main;
+		this.createCustomConfig();
 	}
 	
 	public FileConfiguration getCustomConfig() {
