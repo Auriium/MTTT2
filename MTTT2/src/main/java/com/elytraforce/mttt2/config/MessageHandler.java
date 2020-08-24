@@ -23,7 +23,7 @@ public class MessageHandler {
     }
 
     public void createCustomConfig() {
-    	mainClass.printDebugLine("creating messages.yml");
+    	mainClass.printDebugLine("[MTTT2] Initializing messages.yml");
         customConfigurationFile = new File(mainClass.getDataFolder(), "messages.yml");
         if (!customConfigurationFile.exists()) {
             customConfigurationFile.getParentFile().mkdirs();

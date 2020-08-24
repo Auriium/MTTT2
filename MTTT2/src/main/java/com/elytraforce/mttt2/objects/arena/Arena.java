@@ -35,6 +35,7 @@ public class Arena {
 	private ArenaGame arenaGame;
 	private ArenaEndingCountdown arenaEndingCountdown;
 	//locations
+	private ArrayList<Location> GUN_POINTS;
 	private Location LOBBY_POINT;
 	private Location MAP_POINT;
 	
@@ -43,7 +44,7 @@ public class Arena {
 	
 	private Main mainClass;
 	
-	public Arena(String id, Location lobbyLocation, Location mapLocation) {
+	public Arena(String id, Location lobbyLocation, Location mapLocation, ArrayList<Location> gunLocations) {
 
 		this.id = id;
 		this.arenaPlayers = new ArrayList<GamePlayer>();
@@ -54,6 +55,7 @@ public class Arena {
 		this.gameState = GameStateEnum.WAITING;
 		this.LOBBY_POINT = lobbyLocation;
 		this.MAP_POINT = mapLocation;
+		this.GUN_POINTS = gunLocations;
 		
 		this.arenaCountdown = new ArenaCountdown(this);
 		this.arenaPreparationCountdown = new ArenaPreparationCountdown(this);
@@ -63,6 +65,7 @@ public class Arena {
 
 		//TODO: these need to be retrieved from a config
 		this.requiredPlayers = 2;
+		
 		this.prefix = mainClass.getMessageHandler().getMessage("prefix", false);
 
 		// Add the arena to the arena list in the manager class.
@@ -72,19 +75,27 @@ public class Arena {
 	//THIS METHOD MUST BE RAN AT THE *END* OF MAP ENDING STATE.
 	public void reset() {
 
-		for (GamePlayer player : this.arenaPlayers) {
-			player.getPlayer().kickPlayer("DEBUG KICK MESSAGE!");
-			//You will have to send them to hub instead of kicking them off.
+		for (GamePlayer player : arenaPlayers) {
+			player.getPlayer().kickPlayer("Debug");
 		}
-		this.arenaPlayers.clear();
-		this.gameState = GameStateEnum.WAITING;
 		
+		this.arenaPlayers.clear();
+		
+		this.gameState = GameStateEnum.WAITING;
 		//Please also run map resetting method here
 
 	}
 	
 	
 	//Getters and setters
+	
+	public String getID() {
+		return this.id;
+	}
+	
+	public Location getMapLocation() {
+		return this.MAP_POINT;
+	}
 	
 	public Main getMain() {
 		return this.mainClass;
@@ -104,6 +115,15 @@ public class Arena {
 	
 	public ArrayList<GamePlayer> getArenaPlayers() {
 		return this.arenaPlayers;
+	}
+	
+	public boolean containsPlayer(Player player) {
+		for (GamePlayer gamePlayer : this.arenaPlayers) {
+			if (gamePlayer.getPlayer().equals(player)) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	public GamePlayer findGamePlayer(Player player) {
@@ -164,6 +184,22 @@ public class Arena {
  		return this.arenaGame;
  	}
  	
+ 	public void resetArenaEndingCountdown() {
+		this.arenaEndingCountdown = new ArenaEndingCountdown(this);
+	}
+	
+	public void resetArenaCountdown() {
+		this.arenaCountdown = new ArenaCountdown(this);
+	}
+	
+	public void resetArenaPreperationCountdown() {
+		this.arenaPreparationCountdown = new ArenaPreparationCountdown(this);
+	}
+	
+	public void resetArenaGame() {
+		this.arenaGame = new ArenaGame(this);
+	}
+ 	
  	//Methods for player shit
  	
  	public void addPlayer(Player player) {
@@ -171,6 +207,8 @@ public class Arena {
  		
  		sendPlayerToLobby(addedPlayer);
  		this.arenaPlayers.add(addedPlayer);
+ 		
+ 		mainClass.getTitleActionbarHandler().sendTitle(player, "&4&lJoined Game", "&7" + this.getID());
  		
  		if (!arenaCountdown.isRunning() && arenaPlayers.size() >= requiredPlayers) {
 
@@ -201,11 +239,12 @@ public class Arena {
  			
  			if (this.gameState.equals(GameStateEnum.WAITING)) {
  				//This will only begin the countdown if the game is waiting for players. Otherwise, nah.
- 				arenaCountdown.start(60);
+ 				arenaCountdown.start(30);
  			}
  		}
  	}
  	
+ 	//WHEN KILLING SOMEONE< PUT THEM IN SPECTATOR FIRST THEN FUCKING U SE THIS
  	public GamePlayerRoleEnum checkWinner() {
  		if (this.arenaPlayers.size() < this.requiredPlayers) {
  			return GamePlayerRoleEnum.NONE;
@@ -225,10 +264,12 @@ public class Arena {
  	public void removePlayer(GamePlayer gamePlayer) {
  		this.arenaPlayers.remove(gamePlayer);
  		
- 		//TODO: CHeck if victory method here.
- 		if (!checkWinner().equals(null)) {
- 			//instantly run an ArenaEndingCountdown
- 			this.arenaEndingCountdown.start(10, checkWinner());
+ 		if (this.getArenaState().equals(GameStateEnum.MATCH)) {
+ 			if (!checkWinner().equals(null)) {
+ 	 			this.arenaGame.cancel();
+ 	 			this.resetArenaGame();
+ 	 			this.arenaEndingCountdown.start(10, checkWinner());
+ 	 		}
  		}
  		
  	}
@@ -267,7 +308,8 @@ public class Arena {
  	public void actionSendGameStartTitle() {
  		//TODO: fancy sex animation
  		
- 		mainClass.getTitleActionbarHandler().sendTitle(this, "&4Game Start!", "&7Trouble in Traitor Town");
+ 		mainClass.getTitleActionbarHandler().sendTitle(this, "&4&lGame Start!", "&7Trouble in Traitor Town");
+ 		mainClass.getSoundHandler().playSound(this, "entity.experience_orb.pickup", 1, 1);
  		
  		new BukkitRunnable() {
 	            public void run() {
@@ -275,20 +317,25 @@ public class Arena {
 	            	for (GamePlayer player : getArena().getArenaPlayers()) {
 	         			//Tell them what they are!
 	         			
-	            		GamePlayerRoleEnum playerRole = player.getRole();
-	            		switch (playerRole) {
-	            		case INNOCENT:
-	            			mainClass.getTitleActionbarHandler().sendTitle(player.getPlayer(), "&a&lINNOCENT", "&7Try to stay alive and kill the &cTraitor!");
-	            			break;
-	            		
+	            		switch (player.getRole()) {
 	            		case TRAITOR:
 	            			mainClass.getTitleActionbarHandler().sendTitle(player.getPlayer(), "&c&lTRAITOR", "&7Kill all the &aInnocents!");
+	            			mainClass.getSoundHandler().playSound(player, "entity.wolf.howl", 1, 1);
+	            			mainClass.getTitleActionbarHandler().sendActionBar(player.getPlayer(), "&cPress shift twice to open the Traitor Shop!");
 	            			break;
-	            			
 	            		case DETECTIVE:
 	            			mainClass.getTitleActionbarHandler().sendTitle(player.getPlayer(), "&9&lDETECTIVE", "&7Protect the &aInnocents");
+	            			mainClass.getSoundHandler().playSound(player, "entity.iron_golem.repair", 1, 1);
+	            			mainClass.getTitleActionbarHandler().sendActionBar(player.getPlayer(), "&cPress shift twice to open the Detective Shop!");
 	            			break;
-	            			
+	            		case INNOCENT:
+	            			mainClass.getTitleActionbarHandler().sendTitle(player.getPlayer(), "&a&lINNOCENT", "&7Try to stay alive and kill the &cTraitor!");
+	            			mainClass.getSoundHandler().playSound(player, "entity.experience_orb.pickup", 1, 1);
+	            			break;
+	            		case SPECTATOR:
+	            			break;
+	            		case NONE:
+	            			break;
 	            		default:
 	            			mainClass.getTitleActionbarHandler().sendTitle(player.getPlayer(), "&7&lNONE", "&cTHIS IS AN ERROR");
 	            			break;
@@ -296,7 +343,7 @@ public class Arena {
 	            		
 	         		}
 	            }
-	        }.runTaskLater(mainClass, (long)60L);
+	        }.runTaskLater(mainClass, (long)30L);
  		
  		
  		
@@ -364,6 +411,26 @@ public class Arena {
 	    Random rand = new Random();
 	    int randomNum = rand.nextInt((max - min) + 1) + min;
 	    return randomNum;
+	}
+	
+	//run this on death
+	public void cleanPlayer() {
+		
+	}
+	
+	public void setXPBar(GamePlayer player, int minXP, int maxXP) {
+		player.getPlayer().setLevel(minXP);
+		double formattedValue = (minXP / maxXP);
+		
+		player.getPlayer().setExp((float) formattedValue);
+	}
+	
+	public void setXPBar(int minXP, int maxXP) {
+		
+		for (GamePlayer player : this.arenaPlayers) {
+			player.getPlayer().setLevel(minXP);
+		}
+		
 	}
 	
 	

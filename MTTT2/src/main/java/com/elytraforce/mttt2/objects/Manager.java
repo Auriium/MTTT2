@@ -6,6 +6,7 @@ import java.util.Set;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.entity.Player;
 
 import main.java.com.elytraforce.mttt2.Main;
 import main.java.com.elytraforce.mttt2.objects.arena.Arena;
@@ -17,34 +18,37 @@ public class Manager {
 	public final static Location LOBBY_POINT = new Location(Bukkit.getWorld("world"), 0.0, 10.0, 0.0);
 	public final static Location TEST_MINIGAME_POINT = new Location(Bukkit.getWorld("world"), 0.0, 10.0, 0.0);
 	
+	private Integer selectedArena;
+	
 	//TODO: In the future, do not use this. Instead, read from a config.
 	
 	private ArrayList<Arena> arenas;
 	
 	
 	public static void setup() {
-
-		 /*
-		 * Create 10 new arena objects (you could obviously replace this number
-		 * with a number from an configuration file etc.), it is just for the
-		 * sake of this tutorial.
-		 */
-
+		//initialize all the new arenas from the config
+		try {
+			Main.getMain().getMapConfigHandler().readArenas();
+			Manager.getInstance().getArenas().get(0);
+		} catch (NullPointerException e) {
+			Main.getMain().printDebugLine("[MTTT2] No arenas exist! You will have to reload the plugin"
+					+ " to enable gameplay after creating a map!");
+			return;
+		}
 		
-		//Now pass main class to the arena through asinine static abuse
-
-		//TODO: use a for loop to loop through config and create one of these for each map
-		//Either do that or select a random one and add its details.
+		//randomly select one from the list
 		
-		//TODO: in the future, "test" replaced with the id of the map read from config as well.
 		
-		 new Arena("Test", LOBBY_POINT, TEST_MINIGAME_POINT); 
-		 
-		 
-		 // The arena is added to the arenas list in the constructor of the
-		 // arena class.
 
 	}
+	
+	//ok so this here gets the int of the selected arena to join
+	public Integer getSelectedArena() {
+		return this.selectedArena;
+	}
+	
+	
+	//singleton shit for single humans ;-;
 	
 	private Manager() {
 		this.arenas = new ArrayList<Arena>();
@@ -63,6 +67,21 @@ public class Manager {
 		return this.arenas;
 	}
 	
+	//find a player in an arena
+	
+	public Arena findPlayerArena(Player player) {
+		for (Arena arena : this.arenas) {
+			for (GamePlayer gamePlayer : arena.getArenaPlayers()) {
+				if (gamePlayer.getPlayer().equals(player)) {
+					return arena;
+				}
+			}
+		}
+		return null;
+	}
+	
+	//adding and removing
+	
 	public void addArena(Arena arena) {
 		this.arenas.add(arena);
 	}
@@ -70,4 +89,14 @@ public class Manager {
 	public void removeArena(Arena arena) {
 		this.arenas.remove(arena);
 	}
+	
+	//TODO: not sure if we are going to use the reset methods for tasks or just create a new arena in the first place.
+	//public void arenaEnd(Arena arena) {
+	//	this.removeArena(arena);
+	//	
+	//	//create new arena from old arena data
+	//	new Arena(arena.getID(), LOBBY_POINT, arena.getMapLocation(), null);
+	//}
+	
+	
 }

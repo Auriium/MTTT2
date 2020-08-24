@@ -1,1 +1,5 @@
-prefix: "&8&l✖ &cTTT &7➲"
+prefix: "&8&l✖ &cTTT &7➲ "
+waiting-countdown: "&7Matchmaking ends in %time%"
+pre-match-countdown: "&7The match begins in %time%"
+match-countdown: "&7The match ends in %time%"
+end-match-countdown: "&7Sending you to hub in %time%"

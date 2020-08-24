@@ -11,17 +11,15 @@ import main.java.com.elytraforce.mttt2.objects.GamePlayer;
 public class ArenaEndingCountdown extends BukkitRunnable{
 	private int time;
 	private final Arena arena;
+	private int initialTime;
 
 	public ArenaEndingCountdown(Arena arena) {
 		this.arena = arena;
 		this.time = 0;
+		this.initialTime = 0;
 	}
 	
 	public void start(int time, GamePlayerRoleEnum winner)  {
-		
-		if (!arena.getArenaGame().isCancelled()) {
-			arena.getArenaGame().cancel();
-		}
 		
 		//Now we need to tell everyone who won!
 		
@@ -49,6 +47,7 @@ public class ArenaEndingCountdown extends BukkitRunnable{
 
 		arena.setArenaState(GameStateEnum.ENDING);
 		this.time = time;
+		this.initialTime = time;
 		this.runTaskTimer(Main.getMain(), 0L, 20L);
 		
 		//TODO: show what everyone was, show the traitors and etc
@@ -78,6 +77,7 @@ public class ArenaEndingCountdown extends BukkitRunnable{
 		
 		if (time == 0) {
 			cancel();
+			arena.resetArenaEndingCountdown();
 			
 			//it is about to reset.
 		
@@ -89,16 +89,16 @@ public class ArenaEndingCountdown extends BukkitRunnable{
 		// If the time is divisible by 15 then broadcast a countdown
 		// message.
 		
-		if (time % 15 == 0 || time <= 10) {
+		if (time % 5 == 0 || time <= 3) {
+				arena.getMain().getSoundHandler().playSound(arena, "block.note_block.pling", 1, 1);
 				if (time != 1) {
 					arena.broadcastMessage(ChatColor.AQUA + "Sending you to hub in " + time + " seconds.");
 				} else {
 					arena.broadcastMessage(ChatColor.AQUA + "Sending you to hub in " + time + " second.");
 				}
 		}
+		arena.setXPBar(time, initialTime);
 
-
-		//THIS SHOULD NEVER HAPPEN. THE ONLY TIME AN ARENA COUNTDOWN SHOULD START IS WHEN THERE ARE ENOUGH PLAYERS.
 		
 		
 	time--;

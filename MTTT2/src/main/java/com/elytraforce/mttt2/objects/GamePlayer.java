@@ -10,12 +10,28 @@ public class GamePlayer{
 	private Player player;
 	private GamePlayerRoleEnum playerRole;
 	private Arena arena;
+	private Integer shopPoints;
 	
 	public GamePlayer(Player player, Arena arena) {
 		this.player = player;
 		//This is defined as none here so that the player can be assigned a role later.
 		this.playerRole = GamePlayerRoleEnum.NONE;
 		this.arena = arena;
+		this.shopPoints = 0;
+	}
+	
+	public Integer getPoints() {
+		return this.shopPoints;
+	}
+	
+	public void setPoints(Integer point) {
+		this.shopPoints = point;
+	}
+	
+	public void subtractPoint() {
+		if (this.shopPoints != 0) {
+			this.shopPoints = this.shopPoints - 1;
+		}
 	}
 	
 	public boolean isSpectator() {

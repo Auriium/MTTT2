@@ -7,6 +7,8 @@ import main.java.com.elytraforce.mttt2.Main;
 import main.java.com.elytraforce.mttt2.objects.GamePlayer;
 import main.java.com.elytraforce.mttt2.objects.arena.Arena;
 import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
 
 public class TitleActionbarHandler {
 
@@ -32,19 +34,29 @@ public class TitleActionbarHandler {
 		}
 	}
 	
+	public void sendActionBar(Player player, String actionbar) {
+		player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(parseColor(actionbar)));
+	}
+	
+	public void sendActionBar (Arena arena, String actionbar) {
+		for (GamePlayer player : arena.getArenaPlayers()) {
+			player.getPlayer().spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(parseColor(actionbar)));
+		}
+	}
+	
 	public void sendMessage(Player player, String message) {
-		player.sendMessage(mainClass.getMessageHandler().getMessage("prefix", false) + message);
+		player.sendMessage(mainClass.getMessageHandler().getMessage("prefix", false) + parseColor(message));
 	}
 	
 	public void sendMessageBroadcast(Arena arena, String message) {
 		for (GamePlayer player : arena.getArenaPlayers()) {
-			player.getPlayer().sendMessage(mainClass.getMessageHandler().getMessage("prefix", false) + message);
+			player.getPlayer().sendMessage(mainClass.getMessageHandler().getMessage("prefix", false) + parseColor(message));
 		}
 	}
 	
 	public void sendMessageBroadcast(String message) {
 		for (Player player : Bukkit.getServer().getOnlinePlayers()) {
-			player.sendMessage(mainClass.getMessageHandler().getMessage("prefix", false) + message);
+			player.sendMessage(mainClass.getMessageHandler().getMessage("prefix", false) + parseColor(message));
 		}
 	}
 	
