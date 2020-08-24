@@ -9,7 +9,6 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.MemorySection;
 
 import main.java.com.elytraforce.mttt2.Main;
-import main.java.com.elytraforce.mttt2.config.MapConfigHandler;
 
 public class MapObject {
 	
@@ -24,13 +23,8 @@ public class MapObject {
 	
 	private Main mainClass;
 
-	public MapObject(Main mainClass) {
+	public MapObject(Main mainClass, String id) {
 		this.mainClass = mainClass;
-		new Location(Bukkit.getWorld("world"), 0, 0, 0);
-	}
-	
-	public MapObject initialize(String id) {
-		
 		ArrayList<Location> internalGunLocations = new ArrayList<Location>();
 		
 		this.id = id;
@@ -55,30 +49,26 @@ public class MapObject {
 			mainClass.getMapConfigHandler().save();
 		}
 		
+		//not sure what thhe point of this line here is
+		
+		this.id = mainClass.getMapConfigHandler().getConfigFetcher()
+				.getConfigurationSection("Maps." + id).getName();
 		
 		
-		this.id = mainClass.getMapConfigHandler().getConfigFetcher().getString("Maps." + id);
+		
 		this.spawnLocation = (Location) mainClass.getMapConfigHandler().getConfigFetcher()
-			.get("Maps." + id + ".spawn");
+			.get("Maps." + this.id + ".spawn");
 			
 		this.testerLocation = (Location) mainClass.getMapConfigHandler().getConfigFetcher()
-			.get("Maps." + id + ".tester");
+			.get("Maps." + this.id + ".tester");
 		
-		for (String subPath : mainClass.getMapConfigHandler().getConfigFetcher().getConfigurationSection("Maps." + id + ".guns").getKeys(false)) {
-			Bukkit.broadcastMessage(subPath);
-			Location subGunLocation = (Location) mainClass.getMapConfigHandler().getConfigFetcher().get("Maps." + id + ".guns." + subPath);
+		for (String subPath : mainClass.getMapConfigHandler().getConfigFetcher().getConfigurationSection("Maps." + this.id + ".guns").getKeys(false)) {
+			Location subGunLocation = (Location) mainClass.getMapConfigHandler().getConfigFetcher().get("Maps." + this.id + ".guns." + subPath);
 			internalGunLocations.add(subGunLocation);
 		}
 		
 		this.gunLocations = internalGunLocations;
-		Bukkit.broadcastMessage(this.gunLocations.toString());
-		Bukkit.broadcastMessage(this.spawnLocation.toString());
-		Bukkit.broadcastMessage(this.id.toString());
-		Bukkit.broadcastMessage(this.testerLocation.toString());
-		
-		mainClass.getMapConfigHandler().MapList.add(this);
-		return this;
-		
+		mainClass.getMapConfigHandler().addMap(this);
 	}
 	
 	public String getId() {
@@ -99,10 +89,12 @@ public class MapObject {
 	
 	public void setSpawn(Location location) {
 		mainClass.getMapConfigHandler().getConfigFetcher().set("Maps." + this.id + ".spawn", location);
+		mainClass.getMapConfigHandler().save();
     }
     
     public void setTester(Location location) {
     	mainClass.getMapConfigHandler().getConfigFetcher().set("Maps." + this.id + ".spawn", location);
+    	mainClass.getMapConfigHandler().save();
     }
     
     public Integer addGunLocation(Location location) {
@@ -115,7 +107,7 @@ public class MapObject {
     		gunInteger = 1;
     		
     	} else {
-    		for (String subPath : this.mainClass.getMapConfigHandler().getConfigFetcher().getConfigurationSection("Maps." + this.id).getKeys(false)) {
+    		for (String subPath : mainClass.getMapConfigHandler().getConfigFetcher().getConfigurationSection("Maps." + this.id + ".guns").getKeys(false)) {
 				int numberToAdd = Integer.parseInt(subPath);
 				
 				gunList.add(numberToAdd);
@@ -125,7 +117,9 @@ public class MapObject {
     	}
     	
     	this.mainClass.getMapConfigHandler().getConfigFetcher().set("Maps." + this.id + ".guns." + gunInteger, location);
+    	mainClass.getMapConfigHandler().save();
     	return gunInteger;
+    	
     }
 	
 	public boolean exists() {

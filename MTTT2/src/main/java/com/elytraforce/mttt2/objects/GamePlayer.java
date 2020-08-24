@@ -8,6 +8,9 @@ import main.java.com.elytraforce.mttt2.objects.arena.Arena;
 
 public class GamePlayer{
 	
+	//wrapper that lets me store data like "random kills, kills" probably will need some way
+	//of keeping track if player has a primary or not when i start coding in the gun pickup system...
+	
 	private Player player;
 	private GamePlayerRoleEnum playerRole;
 	private Arena arena;

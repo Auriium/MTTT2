@@ -1,6 +1,8 @@
 package main.java.com.elytraforce.mttt2.objects;
 
 public class CorpseObject {
+	
+	//yet another wrapper
 
 	//public CorpseObject(GamePlayer player, CorpseRebornCorpse corpse, GamePlayerRoleEnum corpseRole)
 	

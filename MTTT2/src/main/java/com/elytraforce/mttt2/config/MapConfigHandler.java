@@ -20,6 +20,9 @@ import main.java.com.elytraforce.mttt2.objects.MapObject;
 import main.java.com.elytraforce.mttt2.objects.arena.Arena;
 
 public class MapConfigHandler {
+	
+	//TODO: make this a singleton and make all references to it use it as such
+	
 	public final static Location LOBBY_POINT = new Location(Bukkit.getWorld("world"), 0.0, 10.0, 0.0);
 	
 	FileConfiguration customConfig = null;
@@ -27,12 +30,19 @@ public class MapConfigHandler {
 	
 	ConfigurationSection mapSection = null;
 	
-	public static ArrayList<MapObject> MapList;
+	private ArrayList<MapObject> MapList;
 	
 	Main mainClass;
 	
 	public MapConfigHandler(Main main){
 		//run this here so that if any of the methods are called the maps are read first.
+		
+		//FUCKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK
+		//8 hours spent figuring out why mapObject was null -
+		//spoiler alert it wasnt null the fucking map list is null
+		this.MapList = new ArrayList<>();
+		//FUCKING SHOOT ME
+		
 		this.mainClass = main;
 		this.createCustomConfig();
 	}
@@ -61,6 +71,19 @@ public class MapConfigHandler {
         
         
 
+    }
+    
+    public ArrayList<MapObject> getMaps() {
+    	return this.MapList;
+    }
+    
+    public void addMap(MapObject object) {
+    	Bukkit.broadcastMessage(object.toString());
+    	this.MapList.add(object);
+    }
+    
+    public void removeMap(MapObject object) {
+    	this.MapList.remove(object);
     }
     
     
@@ -94,7 +117,7 @@ public class MapConfigHandler {
     //Map related stuff
     
     public MapObject getMapFromString(String string) {
-    	for (MapObject object : this.MapList) {
+    	for (MapObject object : MapList) {
     		if (object.getId().equals(string)) {
     			return object;
     		}
@@ -104,7 +127,7 @@ public class MapConfigHandler {
 	
 	public void readArenas() {
 		
-		for (MapObject mapObject : this.MapList) {
+		for (MapObject mapObject : MapList) {
 			new Arena(mapObject.getId(), MapConfigHandler.LOBBY_POINT, mapObject.getSpawn(), mapObject.getGunLocations());
 			mainClass.printDebugLine("[MTTT2] Registered arena " + mapObject.getId());
 		}
@@ -114,15 +137,11 @@ public class MapConfigHandler {
 	}
 	
 	public void readMaps() {
-		
 		for (String path : this.getConfigFetcher().getConfigurationSection("Maps").getKeys(false)) {
 
-			MapObject readMap = new MapObject(mainClass).initialize(path);
-			MapList.add(readMap);
+			new MapObject(mainClass, path);
 
 		}
-		
-		
 		return;
 	}
 	

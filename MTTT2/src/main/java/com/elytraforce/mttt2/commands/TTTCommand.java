@@ -89,9 +89,9 @@ public class TTTCommand implements CommandExecutor{
 			if (!mainClass.getMapConfigHandler().getMapSection().contains(args[1])) {
 				
 				String mapName = args[1];
-				new MapObject(mainClass).initialize(mapName);
+				new MapObject(mainClass, mapName);
 				player.sendMessage(mainClass.getMessageHandler().getMessage("prefix", false) + parseColor(
-						"&cSuccessfully (?) created map! Use commands &7/ttt setSpawn, /ttt setTester, and"
+						"&cSuccessfully created map! Use commands &7/ttt setSpawn, /ttt setTester, and"
 						+ "/ttt addGunLocation &cto complete the map!"));
 				return true;
 			}
