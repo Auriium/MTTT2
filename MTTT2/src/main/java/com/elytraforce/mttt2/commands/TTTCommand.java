@@ -36,8 +36,15 @@ public class TTTCommand implements CommandExecutor{
 			player.sendMessage(parseColor("&c&lMTTT2&7 by Aurium_"));
 			player.sendMessage("");
 			player.sendMessage(parseColor("&7Usage:"));
-			player.sendMessage(parseColor("&7/ttt join &c<numerical>"));   
+			player.sendMessage(parseColor("&7/ttt join &c<numerical>"));  
+			player.sendMessage(parseColor("&7/ttt autojoin"));  
+			player.sendMessage(parseColor("&7/ttt leave")); 
+			player.sendMessage("");
+			player.sendMessage(parseColor("&7/ttt setLobby"));
 			player.sendMessage(parseColor("&7/ttt createMap &c<map_id>"));
+			player.sendMessage(parseColor("&7/ttt setSpawn &c<map_id>"));
+			player.sendMessage(parseColor("&7/ttt setTester &c<map_id>"));
+			player.sendMessage(parseColor("&7/ttt addGunLocation &c<map_id>"));
 			player.sendMessage("");
 			return true;
 		}
@@ -67,6 +74,69 @@ public class TTTCommand implements CommandExecutor{
 					return true;
 				}
 				currentArena.addPlayer(player);
+				return true;
+			}
+			return true;
+		}
+		
+		if (args[0].equalsIgnoreCase("leave")) {
+			Arena currentArena = null;
+			try {
+				 currentArena = Manager.getInstance().getArenas().get(Manager.getInstance().getSelectedArena());
+			} catch (NullPointerException e) {
+				player.sendMessage(mainClass.getMessageHandler().getMessage("prefix", false) + parseColor(
+						"&cNo maps have been set up. If you are not a staff member and are seeing this,"
+						+ " please report this to the staff team!"));
+				return true;
+			} catch (IndexOutOfBoundsException e) {
+				player.sendMessage(mainClass.getMessageHandler().getMessage("prefix", false) + parseColor(
+						"&cNo maps have been set up. If you are not a staff member and are seeing this,"
+						+ " please report this to the staff team!"));
+				return true;
+			}
+			
+
+			if (!currentArena.getArenaState().equals(GameStateEnum.WAITING) || !currentArena.getArenaState().equals(GameStateEnum.COUNTDOWN)  ) {
+				
+				Manager.getInstance().findPlayerArena(player).removePlayer(player);
+				return true;
+			}
+			return true;
+		}
+		
+		if (args[0].equalsIgnoreCase("setLobby")) {
+			if (mainClass.getMapConfigHandler().getLobbySection().getName().equals(null)) {
+				player.sendMessage(mainClass.getMessageHandler().getMessage("prefix", false) + parseColor(
+						"&cSomething went wrong and your Lobby section does not exist!"));
+				return true;
+			}
+			
+			mainClass.getMapConfigHandler().setLobbySection(playerLocation);
+			mainClass.getMapConfigHandler().save();
+			
+			return true;
+		}
+		
+		if (args[0].equalsIgnoreCase("autoJoin")) {
+			Arena currentArena = null;
+			try {
+				 currentArena = Manager.getInstance().getArenas().get(Manager.getInstance().getSelectedArena());
+			} catch (NullPointerException e) {
+				player.sendMessage(mainClass.getMessageHandler().getMessage("prefix", false) + parseColor(
+						"&cNo maps have been set up. If you are not a staff member and are seeing this,"
+						+ " please report this to the staff team!"));
+				return true;
+			} catch (IndexOutOfBoundsException e) {
+				player.sendMessage(mainClass.getMessageHandler().getMessage("prefix", false) + parseColor(
+						"&cNo maps have been set up. If you are not a staff member and are seeing this,"
+						+ " please report this to the staff team!"));
+				return true;
+			}
+			
+
+			if (!currentArena.getArenaState().equals(GameStateEnum.WAITING) || !currentArena.getArenaState().equals(GameStateEnum.COUNTDOWN)  ) {
+				
+				Manager.getInstance().getSelectedArenaAsArena().addPlayer(player);
 				return true;
 			}
 			return true;
@@ -173,7 +243,7 @@ public class TTTCommand implements CommandExecutor{
 				Integer nextLocation = mainClass.getMapConfigHandler().getMapFromString(mapName).addGunLocation(playerLocation);
 				
 				player.sendMessage(mainClass.getMessageHandler().getMessage("prefix", false) + parseColor(
-						"&cAdded gun location &7 " + nextLocation + " &cfor map &7" + mapName + " &c!"));
+						"&cAdded gun location &7" + nextLocation + " &cfor map &7" + mapName + " &c!"));
 				return true;
 			}
 			return true;
@@ -188,5 +258,7 @@ public class TTTCommand implements CommandExecutor{
 	public String parseColor(String string) {
 		return ChatColor.translateAlternateColorCodes('&', string);
 	}
+	
+	
 
 }

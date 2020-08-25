@@ -1,6 +1,7 @@
 package main.java.com.elytraforce.mttt2.objects.arena;
 
 import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import main.java.com.elytraforce.mttt2.Main;
@@ -50,6 +51,12 @@ public class ArenaEndingCountdown extends BukkitRunnable{
 		this.time = time;
 		this.initialTime = time;
 		this.runTaskTimer(Main.getMain(), 0L, 20L);
+		
+		//run pre-cleanup
+		
+		for (GamePlayer player : this.arena.getArenaPlayers()) {
+			player.showPlayer();
+		}
 		
 		//TODO: show what everyone was, show the traitors and etc
 		

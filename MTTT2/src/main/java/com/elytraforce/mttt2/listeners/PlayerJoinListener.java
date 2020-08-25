@@ -8,11 +8,11 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import main.java.com.elytraforce.mttt2.Main;
 import main.java.com.elytraforce.mttt2.objects.Manager;
 
-public class PlayerJoinLeaveEvent implements Listener {
+public class PlayerJoinListener implements Listener {
 
 	private Main mainClass;
 	
-	public PlayerJoinLeaveEvent(main.java.com.elytraforce.mttt2.Main main) {
+	public PlayerJoinListener(main.java.com.elytraforce.mttt2.Main main) {
 		this.mainClass = main;
 	}
 	

@@ -9,7 +9,8 @@ import com.comphenix.protocol.ProtocolManager;
 import main.java.com.elytraforce.mttt2.commands.TTTCommand;
 import main.java.com.elytraforce.mttt2.config.MapConfigHandler;
 import main.java.com.elytraforce.mttt2.config.MessageHandler;
-import main.java.com.elytraforce.mttt2.listeners.PlayerJoinLeaveEvent;
+import main.java.com.elytraforce.mttt2.listeners.PlayerDeathListener;
+import main.java.com.elytraforce.mttt2.listeners.PlayerJoinListener;
 import main.java.com.elytraforce.mttt2.objects.Manager;
 import main.java.com.elytraforce.mttt2.utils.SoundHandler;
 import main.java.com.elytraforce.mttt2.utils.TitleActionbarHandler;
@@ -45,6 +46,10 @@ public class Main extends JavaPlugin {
 		
 		//setup main manager
 		Manager.setup();
+		
+		//fuck java and static references
+		Manager.getInstance().setRandomArena();
+		this.printDebugLine("[MTTT2] Setting bungee autoselected map to " + Manager.getInstance().getSelectedArena());
 
 		//initialize protocol shit
 	}
@@ -73,7 +78,8 @@ public class Main extends JavaPlugin {
 	}
 	
 	private void initializeListeners() {
-		this.getServer().getPluginManager().registerEvents(new PlayerJoinLeaveEvent(this), this);
+		this.getServer().getPluginManager().registerEvents(new PlayerJoinListener(this), this);
+		this.getServer().getPluginManager().registerEvents(new PlayerDeathListener(this), this);
 	}
 	// 
 	//

@@ -2,6 +2,7 @@ package main.java.com.elytraforce.mttt2.objects;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Random;
 import java.util.Set;
 
 import org.bukkit.Bukkit;
@@ -20,17 +21,28 @@ public class Manager {
 	
 	private Integer selectedArena;
 	
-	//TODO: In the future, do not use this. Instead, read from a config.
-	
 	private ArrayList<Arena> arenas;
 	
+	public int randInt(int min, int max) {
+	    Random rand = new Random();
+	    int randomNum = rand.nextInt((max - min) + 1) + min;
+	    return randomNum;
+	}
+	
+	public boolean isInArena(Player player) {
+		try {
+			this.findPlayerArena(player);
+			return true;
+		} catch (NullPointerException e) {
+			return false;
+		}
+	}
 	
 	public static void setup() {
 		//initialize all the new arenas from the config
 		try {
 			Main.getMain().getMapConfigHandler().readMaps();
 			Main.getMain().getMapConfigHandler().readArenas();
-			Manager.getInstance().getArenas().get(0);
 		} catch (NullPointerException e) {
 			Main.getMain().printDebugLine("[MTTT2] You have not created any maps. Please create a map and reload the plugin!");
 			return;
@@ -42,11 +54,19 @@ public class Manager {
 
 	}
 	
+	public void setRandomArena() {
+		this.selectedArena = randInt(1, this.arenas.size()) - 1;
+	}
+	
+	
 	//ok so this here gets the int of the selected arena to join
 	public Integer getSelectedArena() {
 		return this.selectedArena;
 	}
 	
+	public Arena getSelectedArenaAsArena() {
+		return this.arenas.get(this.selectedArena);
+	}
 	
 	//singleton shit for single humans ;-;
 	

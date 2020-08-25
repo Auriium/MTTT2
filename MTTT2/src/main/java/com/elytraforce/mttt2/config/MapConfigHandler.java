@@ -8,6 +8,7 @@ import java.util.Collections;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -23,12 +24,16 @@ public class MapConfigHandler {
 	
 	//TODO: make this a singleton and make all references to it use it as such
 	
+	//private Location LOBBY_POINT;
+	
 	public final static Location LOBBY_POINT = new Location(Bukkit.getWorld("world"), 0.0, 10.0, 0.0);
+	public final static Location genericLocation = new Location(Bukkit.getWorld("world"), 0.0, 10.0, 0.0);
 	
 	FileConfiguration customConfig = null;
 	File customConfigurationFile = null;
 	
 	ConfigurationSection mapSection = null;
+	ConfigurationSection lobbySection = null;
 	
 	private ArrayList<MapObject> MapList;
 	
@@ -67,9 +72,7 @@ public class MapConfigHandler {
 			customConfig.load(customConfigurationFile);
 		} catch (IOException | InvalidConfigurationException e) {
 			e.printStackTrace();
-		}
-        
-        
+		} 
 
     }
     
@@ -78,7 +81,6 @@ public class MapConfigHandler {
     }
     
     public void addMap(MapObject object) {
-    	Bukkit.broadcastMessage(object.toString());
     	this.MapList.add(object);
     }
     
@@ -98,6 +100,19 @@ public class MapConfigHandler {
     	this.mapSection = this.getConfigFetcher().getConfigurationSection("Maps");
     	
     	return this.mapSection;
+    }
+    
+    public ConfigurationSection getLobbySection() {
+    	
+    	if (!this.getConfigFetcher().isConfigurationSection("Lobby")) {
+    		mainClass.getMapConfigHandler().getConfigFetcher().createSection("Lobby");
+    		mainClass.getMapConfigHandler().getConfigFetcher().set("Lobby.lobby", genericLocation);
+    		this.save();
+    	}
+    	
+    	this.lobbySection = this.getConfigFetcher().getConfigurationSection("Lobby");
+    	
+    	return this.lobbySection;
     }
     
     public void save() {
@@ -124,6 +139,14 @@ public class MapConfigHandler {
     	}
 		return null;
     }
+    
+    public void setLobbySection(Location location) {
+    	mainClass.getMapConfigHandler().getConfigFetcher().set("Lobby.lobby", location);
+    	this.save();
+    	
+    }
+    
+    
 	
 	public void readArenas() {
 		

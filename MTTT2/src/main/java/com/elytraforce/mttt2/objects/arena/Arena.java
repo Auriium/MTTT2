@@ -9,6 +9,7 @@ import java.util.Set;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -26,6 +27,7 @@ public class Arena {
 	private String id;
 	private ArrayList<GamePlayer> arenaPlayers;
 	private int requiredPlayers;
+	private int maxPlayers;
 	private String prefix;
 	//enums
 	private GameStateEnum gameState;
@@ -65,6 +67,7 @@ public class Arena {
 
 		//TODO: these need to be retrieved from a config
 		this.requiredPlayers = 2;
+		this.maxPlayers = 16;
 		
 		this.prefix = mainClass.getMessageHandler().getMessage("prefix", false);
 
@@ -205,22 +208,17 @@ public class Arena {
  	public void addPlayer(Player player) {
  		GamePlayer addedPlayer = new GamePlayer(player, this);
  		
+ 		addedPlayer.cleanupPlayer(GameMode.SURVIVAL);
+ 		//IF YOU ARE GOING TO ADD LOBBY ITEMS RUN IT AFTER THIS METHOD.
  		sendPlayerToLobby(addedPlayer);
- 		this.arenaPlayers.add(addedPlayer);
+ 		this.addPlayer(addedPlayer);
  		
- 		mainClass.getTitleActionbarHandler().sendTitle(player, "&4&lJoined Game", "&7" + this.getID());
- 		
- 		if (!arenaCountdown.isRunning() && arenaPlayers.size() >= requiredPlayers) {
-
- 			arenaCountdown.start(30);
-
- 		}
  	}
  	
  	public void removePlayer(Player player) {
  		for (GamePlayer gamePlayer : this.arenaPlayers) {
  			if (gamePlayer.getPlayer().equals(player)) {
- 				this.arenaPlayers.remove(gamePlayer);
+ 				this.removePlayer(gamePlayer);
  				return;
  			}
  		}
@@ -230,6 +228,15 @@ public class Arena {
  	public void addPlayer(GamePlayer gamePlayer) {
  		sendPlayerToLobby(gamePlayer);
  		this.arenaPlayers.add(gamePlayer);
+ 		this.arenaPlayers.add(gamePlayer);
+ 		Bukkit.broadcastMessage(this.arenaPlayers.size() + "");
+ 		
+ 		mainClass.getTitleActionbarHandler().sendTitle(gamePlayer.getPlayer(), "&4&lJoined Game", "&7" + this.getID());
+ 		mainClass.titleActionbarHandler
+ 		.sendMessageBroadcast(this, "&7%player%&e joined the game. (&7%players%&e/&7%maxplayers%&e)"
+ 				.replaceAll("%player%", gamePlayer.getPlayer().getDisplayName()).replaceAll("%players%", this.arenaPlayers.size() + "")
+					.replaceAll("%maxplayers%", this.maxPlayers + ""));
+ 		
  		
  		if (!arenaCountdown.isRunning() && arenaPlayers.size() >= requiredPlayers) {
 
@@ -262,8 +269,22 @@ public class Arena {
  	}
  	
  	public void removePlayer(GamePlayer gamePlayer) {
+ 		//for some asinine reason it makes me do this an im too lazy to figure out
  		this.arenaPlayers.remove(gamePlayer);
+ 		this.arenaPlayers.remove(gamePlayer);
+ 		//not working for some FUCKING REASON
+ 		Bukkit.broadcastMessage(this.arenaPlayers.size() + "");
  		
+ 		mainClass.titleActionbarHandler
+ 		.sendMessageBroadcast(this, "&7%player%&e left the game. (&7%players%&e/&7%maxplayers%&e)"
+ 				.replaceAll("%player%", gamePlayer.getPlayer().getDisplayName()).replaceAll("%players%", this.arenaPlayers.size() - 1 + "")
+					.replaceAll("%maxplayers%", this.maxPlayers + ""));
+ 		
+ 		checkCancel();
+ 		
+ 	}
+ 	
+ 	public void checkCancel() {
  		if (this.getArenaState().equals(GameStateEnum.MATCH)) {
  			if (!checkWinner().equals(null)) {
  	 			this.arenaGame.cancel();
@@ -271,7 +292,6 @@ public class Arena {
  	 			this.arenaEndingCountdown.start(10, checkWinner());
  	 		}
  		}
- 		
  	}
  	
  	
@@ -298,6 +318,10 @@ public class Arena {
  	}
  	
  	//Arena actions
+ 	
+ 	public void actionGenerateGuns() {
+ 		
+ 	}
  	
  	public void actionSendArenaSound(Sound sound, int volume, int pitch) {
  		for (GamePlayer player : this.arenaPlayers) {

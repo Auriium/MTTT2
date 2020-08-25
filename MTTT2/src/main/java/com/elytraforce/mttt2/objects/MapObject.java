@@ -113,7 +113,7 @@ public class MapObject {
 				gunList.add(numberToAdd);
 			}
     		
-    		gunInteger = Collections.max(gunList);
+    		gunInteger = Collections.max(gunList) + 1;
     	}
     	
     	this.mainClass.getMapConfigHandler().getConfigFetcher().set("Maps." + this.id + ".guns." + gunInteger, location);
