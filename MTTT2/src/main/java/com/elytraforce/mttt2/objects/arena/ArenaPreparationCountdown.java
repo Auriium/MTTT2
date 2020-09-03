@@ -19,7 +19,10 @@ public class ArenaPreparationCountdown extends BukkitRunnable{
 	
 	public void start(int time)  {
 
-		arena.getMain().getTitleActionbarHandler().sendMessageBroadcast(arena, "&cYou are in the pre match");
+		
+		//maybe bossbar?
+		arena.actionPreparationPhase();
+		
 		arena.setArenaState(GameStateEnum.PRE_MATCH);
 		this.time = time;
 		this.initialTime = time;

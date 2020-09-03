@@ -20,6 +20,6 @@ public class PlayerJoinListener implements Listener {
 	public void onPlayerLeaveEvent(PlayerQuitEvent event) {
 		Player player = event.getPlayer();
 		Manager.getInstance().findPlayerArena(player).removePlayer(player);
-	}
+	}  
 	
 }

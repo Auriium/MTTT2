@@ -23,30 +23,8 @@ public enum CauseOfDeathEnum
 			return state;
 		}
 	
-	public String getFormattedString() {
-		
-		switch(this.state) {
-		case BURNING:
-			return parseColor("&c&lBURNING");
-		case DETECTIVE:
-			return parseColor("&9&lDETECTIVE");
-		case FALLING:
-			return parseColor("&f&lFALLING");
-		case INNOCENT:
-			return parseColor("&a&lINNOCENT");
-		case TRAITOR:
-			return parseColor("&4&lTRAITOR");     
-		case UNKNOWN:
-			return parseColor("&8&lUNKNOWN");
-		default:
-			break;
-		}
-		
-		return null;
-	}
 	
-	public String parseColor(String input) {
-		return ChatColor.translateAlternateColorCodes('&', input);
-	}
+	
+	
 	
 }

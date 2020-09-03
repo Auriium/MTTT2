@@ -91,10 +91,8 @@ public class Manager {
 	
 	public Arena findPlayerArena(Player player) {
 		for (Arena arena : this.arenas) {
-			for (GamePlayer gamePlayer : arena.getArenaPlayers()) {
-				if (gamePlayer.getPlayer().equals(player)) {
-					return arena;
-				}
+			if (arena.containsPlayer(player)) {
+				return arena;
 			}
 		}
 		return null;

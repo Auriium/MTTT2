@@ -29,6 +29,8 @@ public class MapConfigHandler {
 	public final static Location LOBBY_POINT = new Location(Bukkit.getWorld("world"), 0.0, 10.0, 0.0);
 	public final static Location genericLocation = new Location(Bukkit.getWorld("world"), 0.0, 10.0, 0.0);
 	
+	private Location lobby;
+	
 	FileConfiguration customConfig = null;
 	File customConfigurationFile = null;
 	
@@ -50,6 +52,8 @@ public class MapConfigHandler {
 		
 		this.mainClass = main;
 		this.createCustomConfig();
+		this.getLobbySection();
+		this.lobby = (Location) this.getConfigFetcher().get("Lobby.lobby");
 	}
 	
 	public FileConfiguration getConfigFetcher() {
@@ -94,7 +98,7 @@ public class MapConfigHandler {
     public ConfigurationSection getMapSection() {
     	
     	if (!this.getConfigFetcher().isConfigurationSection("Maps")) {
-    		this.mapSection = mainClass.getMapConfigHandler().getConfigFetcher().createSection("Maps");
+    		this.mapSection = this.getConfigFetcher().createSection("Maps");
     	}
     	
     	this.mapSection = this.getConfigFetcher().getConfigurationSection("Maps");
@@ -105,8 +109,8 @@ public class MapConfigHandler {
     public ConfigurationSection getLobbySection() {
     	
     	if (!this.getConfigFetcher().isConfigurationSection("Lobby")) {
-    		mainClass.getMapConfigHandler().getConfigFetcher().createSection("Lobby");
-    		mainClass.getMapConfigHandler().getConfigFetcher().set("Lobby.lobby", genericLocation);
+    		this.getConfigFetcher().createSection("Lobby");
+    		this.getConfigFetcher().set("Lobby.lobby", genericLocation);
     		this.save();
     	}
     	

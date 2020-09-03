@@ -1,11 +1,15 @@
 package main.java.com.elytraforce.mttt2.listeners;
 
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 
 import main.java.com.elytraforce.mttt2.Main;
 import main.java.com.elytraforce.mttt2.enums.CauseOfDeathEnum;
@@ -14,6 +18,11 @@ import main.java.com.elytraforce.mttt2.enums.GameStateEnum;
 import main.java.com.elytraforce.mttt2.objects.GamePlayer;
 import main.java.com.elytraforce.mttt2.objects.Manager;
 import main.java.com.elytraforce.mttt2.objects.arena.Arena;
+import net.md_5.bungee.api.ChatColor;
+import net.minecraft.server.v1_15_R1.PacketPlayInClientCommand;
+import net.minecraft.server.v1_15_R1.PacketPlayInClientCommand.EnumClientCommand;
+import org.bukkit.craftbukkit.v1_15_R1.entity.CraftPlayer;
+
 
 public class PlayerDeathListener implements Listener{
 	
@@ -23,81 +32,167 @@ public class PlayerDeathListener implements Listener{
 		this.mainClass = main;
 	}
 	
+	
+	@EventHandler
+	public void onRespawnEvent(PlayerRespawnEvent event) {
+		Player player = event.getPlayer();
+		GamePlayer gamePlayer;
+		try {
+			gamePlayer = Manager.getInstance().findPlayerArena(player).findGamePlayer(player);
+		} catch (NullPointerException e) {
+			
+			Bukkit.broadcastMessage("not found");
+			return;
+		}
+		
+		if (!gamePlayer.getDeathLocation().equals(null)) {
+			event.setRespawnLocation(gamePlayer.getDeathLocation());
+		}
+		
+		gamePlayer.setRole(GamePlayerRoleEnum.SPECTATOR);
+    	gamePlayer.cleanupPlayer(GameMode.SPECTATOR);
+		
+		
+	}
+	
 	//todo: call custom event here
 	@EventHandler
 	public void onDeathEvent(PlayerDeathEvent event) {
 		
+		Bukkit.broadcastMessage("death listener");
 		Player player = event.getEntity();
+		GamePlayer gamePlayer;
+		
+		event.setDroppedExp(0);
+		
+		Bukkit.broadcastMessage(player.getLastDamageCause().getCause().toString());
 		
 		//checks if the player is in a game
 		//if this throws an NPE it means either the arena doesnt exist or the player doesnt exist as a GamePlayer
 		//so stop here.
 		try {
-			Manager.getInstance().findPlayerArena(player).findGamePlayer(player);
+			gamePlayer = Manager.getInstance().findPlayerArena(player).findGamePlayer(player);
 		} catch (NullPointerException e) {
+			
+			Bukkit.broadcastMessage("not found");
 			return;
 		}
 		
-		GamePlayer gamePlayer = Manager.getInstance().findPlayerArena(player).findGamePlayer(player);
 		Arena playerArena = Manager.getInstance().findPlayerArena(player);
+		//delays because bukkit is ass and makes you wait when you want to respoon people
 		
-		//redundant check
+		CauseOfDeathEnum damageCauseEnum = null;
+		GamePlayer murderer = null;
+		
+		//figure out what killed them
 		if (playerArena.getArenaState().equals(GameStateEnum.MATCH)) {
 			
-			gamePlayer.setDeaths(gamePlayer.getDeaths() + 1);
+			DamageCause lastDamageCause = player.getLastDamageCause().getCause();
+			//set death location
+			gamePlayer.setDeathLocation(player.getLocation());
 			
-			gamePlayer.getPlayer().spigot().respawn();
-			
-			//get cause of death and then send titles
-			
-			//TODO: make sure that PVPlevels or whatever isnt' sending death messages here.
-			if (hasMurderer(gamePlayer)) {
-				CauseOfDeathEnum death = this.getCauseOfDeath(gamePlayer, true);
-				GamePlayer murderer = Manager.getInstance().findPlayerArena(player.getPlayer().getKiller()).findGamePlayer(player.getPlayer().getKiller());
-				
-				mainClass.getTitleActionbarHandler().sendTitle(
-						gamePlayer.getPlayer(), "&4&lYou were killed by", 
-						death.getFormattedString() + "&7 " + gamePlayer.getPlayer().getKiller().getDisplayName() + "&c!" );
-				
-				//give the murderer a kill... if it if an rdm or not, we will have to see..
-				murderer.setKills(murderer.getKills() + 1);
-			}	else {
-				CauseOfDeathEnum death = this.getCauseOfDeath(gamePlayer, true);
-				
-				mainClass.getTitleActionbarHandler().sendTitle(
-						gamePlayer.getPlayer(), "&4&lYou died by", 
-						death.getFormattedString() + "&c!" );
-				
-				
-				this.getCauseOfDeath(gamePlayer, false);
+			if (lastDamageCause.equals(DamageCause.FIRE) 
+					|| lastDamageCause.equals(DamageCause.FIRE_TICK)
+					|| lastDamageCause.equals(DamageCause.LAVA)) {
+				damageCauseEnum = CauseOfDeathEnum.BURNING;
 			}
 			
-			//CHECK RDM HERE
+			if (lastDamageCause.equals(DamageCause.FALL)) {
+				damageCauseEnum = CauseOfDeathEnum.FALLING;
+			}
 			
-			//Main.getRDMHandler.checkRDM(gamePlayer, gamePlayer.getPlayer.getKiller.turn this into a GamePlayer)
+			if (this.hasMurderer(gamePlayer)) {
+				murderer = Manager.getInstance().findPlayerArena(player.getPlayer().getKiller()).findGamePlayer(player.getPlayer().getKiller());
+				switch(murderer.getRole()) {
+				case DETECTIVE:
+					damageCauseEnum = CauseOfDeathEnum.DETECTIVE;
+					break;
+				case INNOCENT:
+					damageCauseEnum = CauseOfDeathEnum.INNOCENT;
+					break;
+				case NONE:
+					damageCauseEnum = CauseOfDeathEnum.UNKNOWN;
+					break;
+				case SPECTATOR:
+					damageCauseEnum = CauseOfDeathEnum.UNKNOWN;
+					break;
+				case TRAITOR:
+					damageCauseEnum = CauseOfDeathEnum.TRAITOR;
+					break;
+				default:
+					damageCauseEnum = CauseOfDeathEnum.UNKNOWN;
+					break;
+				}
+			}
 			
-			gamePlayer.setRole(GamePlayerRoleEnum.SPECTATOR);
-			
-			//DOES NOT ACTUALLY PUT PLAYER IN SPECTATOR, rather sets them to invisible and flying lmao
-			gamePlayer.cleanupPlayer(GameMode.SPECTATOR);
-			
-			playerArena.checkCancel();
-			
+			if (lastDamageCause.equals(null)) {
+				damageCauseEnum = CauseOfDeathEnum.UNKNOWN;
+			}	
 		}
 		
+		new BukkitRunnable() {
+            public void run() {
+            	Bukkit.broadcastMessage("respawning");
+            	player.spigot().respawn();
+            	Bukkit.broadcastMessage("respawned");
+            	
+            }
+        }.runTaskLater(mainClass, (long)1L);
+        
+        
+        new BukkitRunnable() {
+            public void run() {
+            	//handle rdm stuff here pls
+            	if (hasMurderer(gamePlayer)) {
+            		GamePlayer smallMurderer = Manager.getInstance().findPlayerArena(player.getPlayer().getKiller()).findGamePlayer(player.getPlayer().getKiller());
+            		smallMurderer.setKills(smallMurderer.getKills() + 1);
+            	}
+            	gamePlayer.setDeaths(gamePlayer.getDeaths() + 1);
+            	playerArena.checkCancel();
+            }
+        }.runTaskLater(mainClass, (long)4L);
+		
+		//this as a cause/
+        
 		
 	}
 	
-	public boolean hasMurderer(GamePlayer player) {
-		try {
-			Manager.getInstance().findPlayerArena(player.getPlayer().getKiller()).findGamePlayer(player.getPlayer().getKiller());
-			return true;
-		} catch (NullPointerException e) {
-			//should not happen
-			return false;
+	public String getFormattedString(CauseOfDeathEnum thing) {
+		//issue happens at 149 FOCUHAEOEOISFHSIUEHISUEHIEFH
+		switch(thing) {
+		case BURNING:
+			return parseColor("&c&lBURNING");
+		case DETECTIVE:
+			return parseColor("&9&lDETECTIVE");
+		case FALLING:
+			return parseColor("&f&lFALLING");
+		case INNOCENT:
+			return parseColor("&a&lINNOCENT");
+		case TRAITOR:
+			return parseColor("&4&lTRAITOR");     
+		case UNKNOWN:
+			return parseColor("&8&lUNKNOWN");
+		default:
+			return parseColor("&8&lUNKNOWN");
 		}
 	}
+	
+	
+	public String parseColor(String input) {
+		return ChatColor.translateAlternateColorCodes('&', input);
+	}
+	
+	public boolean hasMurderer(GamePlayer player) {
+		
+		//if (player.getPlayer().getLastDamageCause().getCause().equals(DamageCause.PROJECTILE || DamageCause.CRAMMING))
+		if (player.getPlayer().getKiller() != null) {
+			return true;
+		}
+			return false;
 
+	}
+
+	//useless
 	public CauseOfDeathEnum getCauseOfDeath(GamePlayer player, boolean hasMurdererInternal) {
 		if (hasMurdererInternal) {
 			//this should run if they have a killer

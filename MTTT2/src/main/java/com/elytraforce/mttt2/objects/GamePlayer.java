@@ -1,6 +1,7 @@
 package main.java.com.elytraforce.mttt2.objects;
 
 import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
 
@@ -20,6 +21,7 @@ public class GamePlayer{
 	private Integer randomKills;
 	private Integer deaths;
 	private Integer kills;
+	private Location deathLocation;
 	
 	public GamePlayer(Player player, Arena arena) {
 		this.player = player;
@@ -30,6 +32,15 @@ public class GamePlayer{
 		this.randomKills = 0;
 		this.kills = 0;
 		this.deaths = 0;
+		this.deathLocation = null;
+	}
+	
+	public Location getDeathLocation() {
+		return this.deathLocation;
+	}
+	
+	public void setDeathLocation(Location loc) {
+		this.deathLocation = loc;
 	}
 	
 	public Integer getKills() {
@@ -103,19 +114,23 @@ public class GamePlayer{
 	//go deprecated fuck yourself
 	//like legit
 	//i dont care
+	
+	//please come up with a reason to use hide and show player :)
 	public void cleanupPlayer(final GameMode gameMode) {
 		GamePlayer player = this;
         player.getPlayer().getActivePotionEffects().forEach(effect -> player.getPlayer().removePotionEffect(effect.getType()));
         if (gameMode == GameMode.SURVIVAL) {
         	this.showPlayer();
+        	player.getPlayer().setAllowFlight(false);
             player.getPlayer().setFlying(false);
-            player.getPlayer().setAllowFlight(false);
+            
             player.getPlayer().setGameMode(GameMode.ADVENTURE);
         }
         else if (gameMode == GameMode.SPECTATOR) {
         	this.hidePlayer();
+        	player.getPlayer().setAllowFlight(true);
         	player.getPlayer().setFlying(true);
-            player.getPlayer().setAllowFlight(true);
+            
         	player.getPlayer().setFlySpeed(0.2f);
             player.getPlayer().setGameMode(GameMode.ADVENTURE);
         }
@@ -125,15 +140,17 @@ public class GamePlayer{
         player.getPlayer().getInventory().clear();
     }
 	
+	@SuppressWarnings("deprecation")
 	public void hidePlayer() {
-		for (GamePlayer player : this.arena.getArenaPlayers()) {
-			player.getPlayer().hidePlayer(this.getPlayer());
+		for (GamePlayer fullPlayer : this.arena.getArenaPlayers()) {
+			fullPlayer.getPlayer().hidePlayer(player);
 		}
 	}
 	
+	@SuppressWarnings("deprecation")
 	public void showPlayer() {
-		for (GamePlayer player : this.arena.getArenaPlayers()) {
-			player.getPlayer().showPlayer(this.getPlayer());
+		for (GamePlayer fullPlayer : this.arena.getArenaPlayers()) {
+			fullPlayer.getPlayer().showPlayer(player);
 		}
 	}
 	

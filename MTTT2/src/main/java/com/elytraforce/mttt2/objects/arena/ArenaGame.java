@@ -3,6 +3,7 @@ package main.java.com.elytraforce.mttt2.objects.arena;
 import java.util.ArrayList;
 
 import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import main.java.com.elytraforce.mttt2.Main;
@@ -28,14 +29,23 @@ public class ArenaGame extends BukkitRunnable{
 	}
 	
 	public void start(int time)  {
-
-		arena.getMain().getTitleActionbarHandler().sendMessageBroadcast(arena, "&cYou are in the match");
 		
 		
 		arena.setArenaState(GameStateEnum.MATCH);
 		this.time = time;
 		this.initialTime = time;
 		this.runTaskTimer(Main.getMain(), 0L, 20L);
+		
+		
+		//first clean up anyone who is dead from retarddation
+		
+		for (GamePlayer player : arena.getArenaPlayers()) {
+			if (player.getRole().equals(GamePlayerRoleEnum.SPECTATOR)) {
+				player.setRole(GamePlayerRoleEnum.NONE);
+				player.cleanupPlayer(GameMode.SURVIVAL);
+				arena.getMain().getTitleActionbarHandler().sendActionBar(player.getPlayer(), "&cRespawned! &7(No penalty)");
+			}
+		}
 		
 		//Display roles to players here.
 		arena.actionAssignRoles();
@@ -87,10 +97,16 @@ public class ArenaGame extends BukkitRunnable{
 			return;
 		}
 		
-		// If the time is divisible by 15 then broadcast a countdown
-		// message.
+		if (time % 60 == 0) {
+			arena.getMain().getSoundHandler().playSound(arena, "block.note_block.pling", 1, 1);
+				if (time != 60) {
+					arena.broadcastMessage(ChatColor.AQUA + "Game ends in " + time / 60 + " minutes.");
+				} else {
+					arena.broadcastMessage(ChatColor.AQUA + "Game ends in " + time / 60 + " minute.");
+				}
+		}
 		
-		if (time % 15 == 0 || time <= 10) {
+		if ((time % 15 == 0 && time < 60) || time <= 5) {
 			arena.getMain().getSoundHandler().playSound(arena, "block.note_block.pling", 1, 1);
 				if (time != 1) {
 					arena.broadcastMessage(ChatColor.AQUA + "Game ends in " + time + " seconds.");

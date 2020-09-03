@@ -54,10 +54,6 @@ public class ArenaEndingCountdown extends BukkitRunnable{
 		
 		//run pre-cleanup
 		
-		for (GamePlayer player : this.arena.getArenaPlayers()) {
-			player.showPlayer();
-		}
-		
 		//TODO: show what everyone was, show the traitors and etc
 		
 

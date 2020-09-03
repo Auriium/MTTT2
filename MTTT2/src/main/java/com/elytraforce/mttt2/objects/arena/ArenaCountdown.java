@@ -19,7 +19,6 @@ public class ArenaCountdown extends BukkitRunnable{
 	
 	public void start(int time)  {
 
-		arena.getMain().getTitleActionbarHandler().sendMessageBroadcast(arena, "&cYou are in the countdown");
 		arena.setArenaState(GameStateEnum.COUNTDOWN);
 		this.time = time;
 		this.initialTime = time;

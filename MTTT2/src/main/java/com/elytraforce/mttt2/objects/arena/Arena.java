@@ -1,14 +1,11 @@
 package main.java.com.elytraforce.mttt2.objects.arena;
 
 import java.util.ArrayList;
+
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Random;
-import java.util.Set;
-
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Sound;
@@ -78,7 +75,7 @@ public class Arena {
 	//THIS METHOD MUST BE RAN AT THE *END* OF MAP ENDING STATE.
 	public void reset() {
 
-		for (GamePlayer player : arenaPlayers) {
+		for (Player player : mainClass.getServer().getOnlinePlayers()) {
 			player.getPlayer().kickPlayer("Debug");
 		}
 		
@@ -228,7 +225,6 @@ public class Arena {
  	public void addPlayer(GamePlayer gamePlayer) {
  		sendPlayerToLobby(gamePlayer);
  		this.arenaPlayers.add(gamePlayer);
- 		this.arenaPlayers.add(gamePlayer);
  		Bukkit.broadcastMessage(this.arenaPlayers.size() + "");
  		
  		mainClass.getTitleActionbarHandler().sendTitle(gamePlayer.getPlayer(), "&4&lJoined Game", "&7" + this.getID());
@@ -270,7 +266,6 @@ public class Arena {
  	
  	public void removePlayer(GamePlayer gamePlayer) {
  		//for some asinine reason it makes me do this an im too lazy to figure out
- 		this.arenaPlayers.remove(gamePlayer);
  		this.arenaPlayers.remove(gamePlayer);
  		//not working for some FUCKING REASON
  		Bukkit.broadcastMessage(this.arenaPlayers.size() + "");
@@ -329,6 +324,11 @@ public class Arena {
  		}
  	}
  	
+ 	public void actionPreparationPhase() {
+ 		mainClass.getTitleActionbarHandler().sendTitle(this, "&4&lPreparation Phase", "&7Equip guns off the ground!");
+ 		mainClass.getSoundHandler().playSound(this, "entity.experience_orb.pickup", 1, 1);
+ 	}
+ 	
  	public void actionSendGameStartTitle() {
  		//TODO: fancy sex animation
  		
@@ -376,6 +376,13 @@ public class Arena {
  	}
  	
  	public void actionCountRDM() {
+ 		//new BukkitRunnable() {
+    //        public void run() {
+  //          	
+//
+        //    }
+        //}.runTaskLater(mainClass, (long)30L);
+ 		
  		new BukkitRunnable() {
             public void run() {
             	
@@ -383,7 +390,7 @@ public class Arena {
          			//count rdm
             		//in the future, karma will be adjusted per rdm
             		mainClass.getTitleActionbarHandler().sendTitle(
-            				player.getPlayer(), "&9&l" + player.getPlayer().getDisplayName(), "&7You random killed &c" + player.getRandomKills() + " &7players!");
+            				player.getPlayer(), "&4&l" + player.getPlayer().getName(), "&7You RDM'ed &c" + player.getRandomKills() + " &7players!");
         			mainClass.getSoundHandler().playSound(player, "entity.iron_golem.repair", 1, 1);
          		}
             }
@@ -395,7 +402,7 @@ public class Arena {
             	for (GamePlayer player : getArena().getArenaPlayers()) {
          			//now count deaths and adjust deaths
             		mainClass.getTitleActionbarHandler().sendTitle(
-            				player.getPlayer(), "&9&l" + player.getPlayer().getDisplayName(), "&7And eliminated &c" + player.getRandomKills() + " &7in total!");
+            				player.getPlayer(), "&4&l" + player.getPlayer().getName(), "&7And eliminated &c" + player.getKills() + " &7in total!");
         			mainClass.getSoundHandler().playSound(player, "entity.iron_golem.repair", 1, 1);
          		}
             }
@@ -410,7 +417,19 @@ public class Arena {
             		//TODO: make this configurable
             		Integer reward = (player.getKills() - player.getRandomKills()) * 50;
             		mainClass.getTitleActionbarHandler().sendTitle(
-            				player.getPlayer(), "&9&lRewards", "&7You earned &c" + reward + "$ &7from this match!");
+            				player.getPlayer(), "&4&lRewards", "&7You earned &c" + reward + "$ &7from this match!");
+        			mainClass.getSoundHandler().playSound(player, "entity.iron_golem.repair", 1, 1);
+         		}
+            }
+        }.runTaskLater(mainClass, (long)90L);
+        
+        new BukkitRunnable() {
+            public void run() {
+            	
+            	for (GamePlayer player : getArena().getArenaPlayers()) {
+
+            		mainClass.getTitleActionbarHandler().sendTitle(
+            				player.getPlayer(), "&4&lTTT", "&7Sending you to the hub!");
         			mainClass.getSoundHandler().playSound(player, "entity.iron_golem.repair", 1, 1);
          		}
             }
