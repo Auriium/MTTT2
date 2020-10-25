@@ -20,4 +20,4 @@ public enum GamePlayerRoleEnum
 		{
 			return state;
 		}
-}
+} 

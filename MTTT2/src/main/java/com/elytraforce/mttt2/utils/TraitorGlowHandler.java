@@ -56,7 +56,7 @@ public class TraitorGlowHandler {
             mainClass.getProtocolManager().sendServerPacket(sendPacket, packet);
         } catch (InvocationTargetException e) {
         	e.printStackTrace();
-            System.out.println("Something went wrong with GlowingAPI");
+            System.out.println("ERROR with packets regarding glowing.");
         }
            
     }

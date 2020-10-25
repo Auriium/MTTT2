@@ -1,5 +1,6 @@
 package main.java.com.elytraforce.mttt2.objects;
 
+import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.attribute.Attribute;
@@ -33,6 +34,34 @@ public class GamePlayer{
 		this.kills = 0;
 		this.deaths = 0;
 		this.deathLocation = null;
+	}
+	
+	public String getColoredRole() {
+		switch (this.playerRole) {
+			case DETECTIVE:
+				return parseColor("&9&lDETECTIVE");
+			case TRAITOR:
+				return parseColor("&c&lTRAITOR");
+			case INNOCENT:
+				return parseColor("&a&lINNOCENT");
+			default:
+				return parseColor("&7&lUNKNOWN");
+		}
+		
+	}
+	
+	public String getColoredName() {
+		switch (this.playerRole) {
+			case DETECTIVE:
+				return parseColor("&9&l" + this.player.getName());
+			case TRAITOR:
+				return parseColor("&c&l" + this.player.getName());
+			case INNOCENT:
+				return parseColor("&a&l" + this.player.getName());
+			default:
+				return parseColor("&7&l" + this.player.getName());
+		}
+		
 	}
 	
 	public Location getDeathLocation() {
@@ -117,6 +146,7 @@ public class GamePlayer{
 	
 	//please come up with a reason to use hide and show player :)
 	public void cleanupPlayer(final GameMode gameMode) {
+		
 		GamePlayer player = this;
         player.getPlayer().getActivePotionEffects().forEach(effect -> player.getPlayer().removePotionEffect(effect.getType()));
         if (gameMode == GameMode.SURVIVAL) {
@@ -152,6 +182,10 @@ public class GamePlayer{
 		for (GamePlayer fullPlayer : this.arena.getArenaPlayers()) {
 			fullPlayer.getPlayer().showPlayer(player);
 		}
+	}
+	
+	public String parseColor(String string) {
+		return ChatColor.translateAlternateColorCodes('&', string);
 	}
 	
 	

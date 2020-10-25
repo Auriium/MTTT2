@@ -1,10 +1,15 @@
 package main.java.com.elytraforce.mttt2.objects.arena;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarStyle;
+import org.bukkit.boss.BossBar;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import main.java.com.elytraforce.mttt2.Main;
 import main.java.com.elytraforce.mttt2.enums.GameStateEnum;
+import main.java.com.elytraforce.mttt2.objects.GamePlayer;
 
 public class ArenaCountdown extends BukkitRunnable{
 	private int time;
@@ -23,6 +28,8 @@ public class ArenaCountdown extends BukkitRunnable{
 		this.time = time;
 		this.initialTime = time;
 		this.runTaskTimer(Main.getMain(), 0L, 20L);
+		
+		arena.registerTeams();
 
 	}
 	
@@ -40,7 +47,6 @@ public class ArenaCountdown extends BukkitRunnable{
 		if (arena.getArenaPlayers().size() < arena.getRequiredPlayers()) {
 			cancel();
 			arena.resetArenaCountdown();
-			
 			arena.setArenaState(GameStateEnum.WAITING);
 			arena.broadcastMessage(ChatColor.RED + "There are too few players. Countdown stopped.");
 			return; 
@@ -49,6 +55,7 @@ public class ArenaCountdown extends BukkitRunnable{
 		if (time == 0) {
 			cancel();
 			arena.resetArenaCountdown();
+			arena.getDisplayBar1().removeAll();
 			
 			//start the Arena Preparation Countdown Phase
 			

@@ -2,6 +2,8 @@ name: MTTT2
 version: 1.0
 main: main.java.com.elytraforce.mttt2.Main
 author: Aurium
+softdepend: [HolographicDisplays]
+api-version: 1.15
 commands:
     ttt:
         description: All informations

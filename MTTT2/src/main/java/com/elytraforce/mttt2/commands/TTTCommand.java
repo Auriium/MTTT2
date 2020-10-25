@@ -1,7 +1,9 @@
 package main.java.com.elytraforce.mttt2.commands;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -14,6 +16,7 @@ import main.java.com.elytraforce.mttt2.enums.GameStateEnum;
 import main.java.com.elytraforce.mttt2.objects.Manager;
 import main.java.com.elytraforce.mttt2.objects.MapObject;
 import main.java.com.elytraforce.mttt2.objects.arena.Arena;
+import main.java.com.elytraforce.mttt2.utils.WorldUtils;
 
 
 public class TTTCommand implements CommandExecutor{
@@ -156,16 +159,28 @@ public class TTTCommand implements CommandExecutor{
 				return true;
 			}
 			
-			if (!mainClass.getMapConfigHandler().getMapSection().contains(args[1])) {
 				
 				String mapName = args[1];
 				new MapObject(mainClass, mapName);
+				
+				//attempt to create the map, or if it exists teleport. i think its case sensitive idk im not a dev
+				
+				if (Bukkit.getWorld(mapName) != null) {
+					((Player) sender).teleport(Bukkit.getWorld(mapName).getSpawnLocation());
+					player.sendMessage("&eFound a world with the map name in server root, teleporting...");
+				} else {
+
+					World w = WorldUtils.createEmptyWorld(mapName);
+					if (w != null)
+						((Player) sender).teleport(Bukkit.getWorld(mapName).getSpawnLocation());
+					player.sendMessage("&6There's no world named &e" + mapName + " &e. A new world has been created.");
+				}
+				
 				player.sendMessage(mainClass.getMessageHandler().getMessage("prefix", false) + parseColor(
 						"&cSuccessfully created map! Use commands &7/ttt setSpawn, /ttt setTester, and"
-						+ "/ttt addGunLocation &cto complete the map!"));
+						+ "/ttt addGunLocation &cto complete the map, then run /ttt finish <name> to save it!"));
 				return true;
-			}
-			return true;
+
 		}
 		
 		if (args[0].equalsIgnoreCase("setSpawn")) {

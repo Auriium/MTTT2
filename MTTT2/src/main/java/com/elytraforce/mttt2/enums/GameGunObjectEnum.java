@@ -17,7 +17,7 @@ public enum GameGunObjectEnum
 		}
 
 	public static GameGunObjectEnum getState()
-		{
+		{ 
 			return state;
 		}
 }

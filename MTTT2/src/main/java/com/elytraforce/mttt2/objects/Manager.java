@@ -6,8 +6,13 @@ import java.util.Random;
 import java.util.Set;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.ScoreboardManager;
+import org.bukkit.scoreboard.Team;
 
 import main.java.com.elytraforce.mttt2.Main;
 import main.java.com.elytraforce.mttt2.objects.arena.Arena;
@@ -22,6 +27,13 @@ public class Manager {
 	private Integer selectedArena;
 	
 	private ArrayList<Arena> arenas;
+	
+	//This is only used to handle cool colors ;) ik its shitcode
+	
+	public static ScoreboardManager scoreManager;
+	public Scoreboard globalBoard = scoreManager.getNewScoreboard();
+	private Team team = globalBoard.registerNewTeam("TRAITOR");
+	
 	
 	public int randInt(int min, int max) {
 	    Random rand = new Random();
@@ -48,10 +60,36 @@ public class Manager {
 			return;
 		}
 		
+		scoreManager = Bukkit.getScoreboardManager();
+		
+		
 		//randomly select one from the list
 		
 		//randint (0, arenas.size)
 
+	}
+	
+	public void addPlayerAsTraitor(GamePlayer player) {
+		if (team.getPlayers().contains(player.getPlayer())) {
+			return;
+		}
+		
+		team.addPlayer(player.getPlayer());
+	}
+	
+	public void removePlayerAsTraitor(GamePlayer player) {
+		if (team.getPlayers().contains(player.getPlayer())) {
+			team.removePlayer(player.getPlayer());
+		}
+	}
+	
+	public Set<OfflinePlayer> getPlayersAsTraitor() {
+		return this.team.getPlayers();
+	}
+	
+	public void setupTeams() {
+		this.team.setColor(ChatColor.RED);
+		this.team.setAllowFriendlyFire(true);
 	}
 	
 	public void setRandomArena() {

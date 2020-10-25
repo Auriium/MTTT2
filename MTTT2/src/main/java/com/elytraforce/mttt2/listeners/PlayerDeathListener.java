@@ -15,6 +15,7 @@ import main.java.com.elytraforce.mttt2.Main;
 import main.java.com.elytraforce.mttt2.enums.CauseOfDeathEnum;
 import main.java.com.elytraforce.mttt2.enums.GamePlayerRoleEnum;
 import main.java.com.elytraforce.mttt2.enums.GameStateEnum;
+import main.java.com.elytraforce.mttt2.objects.CorpseObject;
 import main.java.com.elytraforce.mttt2.objects.GamePlayer;
 import main.java.com.elytraforce.mttt2.objects.Manager;
 import main.java.com.elytraforce.mttt2.objects.arena.Arena;
@@ -130,6 +131,9 @@ public class PlayerDeathListener implements Listener{
 			}	
 		}
 		
+		//spawn a corpse ;)
+        new CorpseObject(gamePlayer.getDeathLocation(), gamePlayer, gamePlayer.getRole());
+		
 		new BukkitRunnable() {
             public void run() {
             	Bukkit.broadcastMessage("respawning");
@@ -140,13 +144,22 @@ public class PlayerDeathListener implements Listener{
         }.runTaskLater(mainClass, (long)1L);
         
         
+        
+        
+        
+        
+        //check murderer here
+        
+        if (hasMurderer(gamePlayer)) {
+    		GamePlayer smallMurderer = Manager.getInstance().findPlayerArena(player.getPlayer().getKiller()).findGamePlayer(player.getPlayer().getKiller());
+    		smallMurderer.setKills(smallMurderer.getKills() + 1);
+    	}
+        
+        //check cancel and only cancel
         new BukkitRunnable() {
             public void run() {
             	//handle rdm stuff here pls
-            	if (hasMurderer(gamePlayer)) {
-            		GamePlayer smallMurderer = Manager.getInstance().findPlayerArena(player.getPlayer().getKiller()).findGamePlayer(player.getPlayer().getKiller());
-            		smallMurderer.setKills(smallMurderer.getKills() + 1);
-            	}
+
             	gamePlayer.setDeaths(gamePlayer.getDeaths() + 1);
             	playerArena.checkCancel();
             }
@@ -185,10 +198,11 @@ public class PlayerDeathListener implements Listener{
 	public boolean hasMurderer(GamePlayer player) {
 		
 		//if (player.getPlayer().getLastDamageCause().getCause().equals(DamageCause.PROJECTILE || DamageCause.CRAMMING))
-		if (player.getPlayer().getKiller() != null) {
-			return true;
-		}
+		if (player.getPlayer().getKiller() == null) {
 			return false;
+		}
+		
+		return true;
 
 	}
 

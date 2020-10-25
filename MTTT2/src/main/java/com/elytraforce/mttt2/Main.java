@@ -1,6 +1,8 @@
 package main.java.com.elytraforce.mttt2;
 
 
+import java.io.File;
+
 import org.bukkit.plugin.java.JavaPlugin;
 
 
@@ -10,11 +12,15 @@ import com.comphenix.protocol.ProtocolManager;
 import main.java.com.elytraforce.mttt2.commands.TTTCommand;
 import main.java.com.elytraforce.mttt2.config.MapConfigHandler;
 import main.java.com.elytraforce.mttt2.config.MessageHandler;
+import main.java.com.elytraforce.mttt2.listeners.CorpseClickListener;
 import main.java.com.elytraforce.mttt2.listeners.PlayerDeathListener;
 import main.java.com.elytraforce.mttt2.listeners.PlayerJoinListener;
+import main.java.com.elytraforce.mttt2.listeners.ProtectionListener;
 import main.java.com.elytraforce.mttt2.objects.Manager;
+import main.java.com.elytraforce.mttt2.objects.arena.Arena;
 import main.java.com.elytraforce.mttt2.utils.SoundHandler;
 import main.java.com.elytraforce.mttt2.utils.TitleActionbarHandler;
+import main.java.com.elytraforce.mttt2.utils.TraitorGlowHandler;
 
 public class Main extends JavaPlugin {
 
@@ -22,6 +28,7 @@ public class Main extends JavaPlugin {
 	public TitleActionbarHandler titleActionbarHandler;
 	public SoundHandler soundHandler;
 	public MapConfigHandler mapConfigHandler;
+	public TraitorGlowHandler glowHandler;
 	//private static instance i know you arent supposed to do this but fuck it
 	//most of the time i will pass the main class through a constructor
 	//however in this instance it is required to use a static
@@ -45,20 +52,32 @@ public class Main extends JavaPlugin {
 		this.initializeCommands();
 		this.initializeListeners();
 		
+		
+		final File worldsFile = new File(this.getDataFolder(), "template_worlds");
+        if (!worldsFile.exists()) {
+            worldsFile.mkdir();
+            this.getLogger().warning("*** ATTENTION ***");
+            this.getLogger().warning("The template_worlds folder has been generated. The plugin will be disabled. Please drop at least one template world into this folder and restart or load the plugin.");
+        }
+		
 		//setup main manager
 		Manager.setup();
+		
 		
 		//fuck java and static references
 		Manager.getInstance().setRandomArena();
 		this.printDebugLine("[MTTT2] Setting bungee autoselected map to " + Manager.getInstance().getSelectedArena());
 
+		Manager.getInstance().setupTeams();
 		//initialize protocol shit
 	}
 	
 	
 	@Override 
 	public void onDisable() {
-		
+		for (Arena arena : Manager.getInstance().getArenas()) {
+			arena.shutdown(false, true);
+		}
 	}
 	
 	private void initializeClasses() {
@@ -72,6 +91,7 @@ public class Main extends JavaPlugin {
 		
 		this.titleActionbarHandler = new TitleActionbarHandler(this);
 		this.tttcommand = new TTTCommand(this);
+		this.glowHandler = new TraitorGlowHandler(this);
 	}
 	
 	private void initializeCommands() {
@@ -81,10 +101,16 @@ public class Main extends JavaPlugin {
 	private void initializeListeners() {
 		this.getServer().getPluginManager().registerEvents(new PlayerJoinListener(this), this);
 		this.getServer().getPluginManager().registerEvents(new PlayerDeathListener(this), this);
+		this.getServer().getPluginManager().registerEvents(new ProtectionListener(), this);
+		this.getServer().getPluginManager().registerEvents(new CorpseClickListener(), this);
 	}
 	// 
 	//
 	//
+	
+	public TraitorGlowHandler getTraitorGlowHandler() {
+		return this.glowHandler;
+	}
 	
 	public ProtocolManager getProtocolManager() {
 		return this.protocolManager;

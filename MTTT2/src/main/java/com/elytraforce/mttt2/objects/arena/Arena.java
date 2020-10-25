@@ -1,28 +1,47 @@
 package main.java.com.elytraforce.mttt2.objects.arena;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Random;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Color;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.Sound;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarStyle;
+import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Player;
+import org.bukkit.event.HandlerList;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scoreboard.NameTagVisibility;
 import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.ScoreboardManager;
+import org.golde.bukkit.corpsereborn.nms.Corpses.CorpseData;
 
 import main.java.com.elytraforce.mttt2.Main;
 import main.java.com.elytraforce.mttt2.enums.GamePlayerRoleEnum;
 import main.java.com.elytraforce.mttt2.enums.GameStateEnum;
+import main.java.com.elytraforce.mttt2.objects.CorpseObject;
 import main.java.com.elytraforce.mttt2.objects.GamePlayer;
 import main.java.com.elytraforce.mttt2.objects.Manager;
+import main.java.com.elytraforce.mttt2.utils.WorldUtils;
 
 public class Arena {
 
+	private BossBar displayBar1;
+	private BossBar displayBar2;
+	
 	private String id;
 	private ArrayList<GamePlayer> arenaPlayers;
+	private ArrayList<CorpseObject> corpseList;
 	private int requiredPlayers;
 	private int maxPlayers;
 	private String prefix;
@@ -43,15 +62,40 @@ public class Arena {
 	
 	private Main mainClass;
 	
+	public void loadMap() {
+		
+	}
+	
 	public Arena(String id, Location lobbyLocation, Location mapLocation, ArrayList<Location> gunLocations) {
 
 		this.id = id;
 		this.arenaPlayers = new ArrayList<GamePlayer>();
+		this.corpseList = new ArrayList<CorpseObject>();
 
 		// Initialise the arena's game state as waiting - what it will be when
 		// the arena is created.
-
+		
+		//load world from template_worlds
+		
+		File target = new File(Main.getMain().getServer().getWorldContainer().getAbsolutePath(), id);
+		if(target.exists()) {
+			WorldUtils.deleteWorld(target);
+		}
+		
+		File source = new File(Main.getMain().getDataFolder() + File.separator + "template_worlds" + File.separator + id);
+		try {
+			WorldUtils.copyWorld(source, target);
+		} catch (NullPointerException e) {
+			Main.getMain().printDebugLine("ERROR: This world does not exist! Shutting down, please provide a world!");
+			return;
+		}
+		
+		WorldUtils.loadWorld(id);
+		
+		
+		 
 		this.gameState = GameStateEnum.WAITING;
+		//issue
 		this.LOBBY_POINT = lobbyLocation;
 		this.MAP_POINT = mapLocation;
 		this.GUN_POINTS = gunLocations;
@@ -68,26 +112,50 @@ public class Arena {
 		
 		this.prefix = mainClass.getMessageHandler().getMessage("prefix", false);
 
+		this.displayBar1 = Bukkit.createBossBar(ChatColor.translateAlternateColorCodes('&', "&fYou are currently playing &e&lTTT &ron &e&l" + this.getID()), BarColor.WHITE, BarStyle.SOLID);
 		// Add the arena to the arena list in the manager class.
+		
 		Manager.getInstance().addArena(this);
+		
+		
 	}
 	
 	//THIS METHOD MUST BE RAN AT THE *END* OF MAP ENDING STATE.
 	public void reset() {
+		
+		this.resetTeams();
 
 		for (Player player : mainClass.getServer().getOnlinePlayers()) {
 			player.getPlayer().kickPlayer("Debug");
 		}
+	
+		for (CorpseObject corpse : this.corpseList) {
+			corpse.clear();
+		}
+		
+		this.corpseList.clear();
 		
 		this.arenaPlayers.clear();
-		
-		this.gameState = GameStateEnum.WAITING;
+	
 		//Please also run map resetting method here
+		
+		this.shutdown(true, false);
+		
+		
 
 	}
 	
 	
+	
+	
+	
+	
 	//Getters and setters
+	
+	
+	public ArrayList<CorpseObject> getCorpses() {
+		return this.corpseList;
+	}
 	
 	public String getID() {
 		return this.id;
@@ -135,6 +203,15 @@ public class Arena {
 		return null;
 	}
 	
+	public CorpseObject findCorpse(CorpseData data) {
+		for (CorpseObject object : this.corpseList) {
+			if (object.getCorpseData() == data) {
+				return object;
+			}
+		}
+		return null;
+	}
+	
 	public GamePlayer findGamePlayer(GamePlayer player) {
 		for (GamePlayer gamePlayer : this.arenaPlayers) {
 			if (gamePlayer.equals(player)) {
@@ -162,6 +239,10 @@ public class Arena {
 			}
 		}
 		return returnList;
+	}
+	
+	public BossBar getDisplayBar1() {
+		return this.displayBar1;
 	}
 	
 	public int getRequiredPlayers() {
@@ -201,6 +282,21 @@ public class Arena {
 	}
  	
  	//Methods for player shit
+	
+	public void registerTeams() {
+		for (GamePlayer player : this.arenaPlayers) {
+			if (player.getRole() == GamePlayerRoleEnum.TRAITOR) {
+				Manager.getInstance().addPlayerAsTraitor(player);
+			}
+		}
+	}
+	
+	public void resetTeams() {
+		for (OfflinePlayer player : Manager.getInstance().getPlayersAsTraitor()) {
+			Manager.getInstance().removePlayer((Player) player);
+		}
+
+	}
  	
  	public void addPlayer(Player player) {
  		GamePlayer addedPlayer = new GamePlayer(player, this);
@@ -209,6 +305,8 @@ public class Arena {
  		//IF YOU ARE GOING TO ADD LOBBY ITEMS RUN IT AFTER THIS METHOD.
  		sendPlayerToLobby(addedPlayer);
  		this.addPlayer(addedPlayer);
+ 		
+ 		
  		
  	}
  	
@@ -222,7 +320,15 @@ public class Arena {
  		//kick player or something
  	}
  	
+ 	
  	public void addPlayer(GamePlayer gamePlayer) {
+ 		
+ 		if (this.arenaPlayers.contains(gamePlayer)) {
+ 			return;
+ 		}
+ 		
+ 		this.displayBar1.addPlayer(gamePlayer.getPlayer());
+ 		
  		sendPlayerToLobby(gamePlayer);
  		this.arenaPlayers.add(gamePlayer);
  		Bukkit.broadcastMessage(this.arenaPlayers.size() + "");
@@ -265,14 +371,13 @@ public class Arena {
  	}
  	
  	public void removePlayer(GamePlayer gamePlayer) {
- 		//for some asinine reason it makes me do this an im too lazy to figure out
+ 		this.displayBar1.removePlayer(gamePlayer.getPlayer());
  		this.arenaPlayers.remove(gamePlayer);
- 		//not working for some FUCKING REASON
  		Bukkit.broadcastMessage(this.arenaPlayers.size() + "");
  		
  		mainClass.titleActionbarHandler
  		.sendMessageBroadcast(this, "&7%player%&e left the game. (&7%players%&e/&7%maxplayers%&e)"
- 				.replaceAll("%player%", gamePlayer.getPlayer().getDisplayName()).replaceAll("%players%", this.arenaPlayers.size() - 1 + "")
+ 				.replaceAll("%player%", gamePlayer.getPlayer().getDisplayName()).replaceAll("%players%", this.arenaPlayers.size() + "")
 					.replaceAll("%maxplayers%", this.maxPlayers + ""));
  		
  		checkCancel();
@@ -281,7 +386,7 @@ public class Arena {
  	
  	public void checkCancel() {
  		if (this.getArenaState().equals(GameStateEnum.MATCH)) {
- 			if (!checkWinner().equals(null)) {
+ 			if (!(checkWinner() == null)) {
  	 			this.arenaGame.cancel();
  	 			this.resetArenaGame();
  	 			this.arenaEndingCountdown.start(10, checkWinner());
@@ -519,6 +624,54 @@ public class Arena {
 		}
 		
 	}
+	
+	//WorldReset
+	
+	public void shutdown(boolean recreate, boolean shutdown) {
+		this.setArenaState(GameStateEnum.RESETTING);
+
+		if(shutdown) {
+			WorldUtils.unloadWorld(this.getID(), false);
+			WorldUtils.deleteWorld(this.getID());
+			return;
+		}
+
+		new BukkitRunnable() {
+
+			@Override
+			public void run() {
+				restore(recreate);
+			}
+		}.runTaskLater(Main.getMain(), 30);
+	}
+	
+	public void restore(boolean recreate) {
+		if (Bukkit.getWorld(this.getID()) != null) {
+			WorldUtils.unloadWorld(this.getID(), false);
+			WorldUtils.deleteWorld(this.getID());
+		}
+		WorldUtils.deleteWorldGuard(this.getID());
+		
+		if (recreate) {
+			File target = new File(Main.getMain().getServer().getWorldContainer().getAbsolutePath(), id);
+			if(target.exists()) {
+				WorldUtils.deleteWorld(target);
+			}
+			
+			File source = new File(Main.getMain().getDataFolder() + File.separator + "template_worlds" + File.separator + id);
+			try {
+				WorldUtils.copyWorld(source, target);
+			} catch (NullPointerException e) {
+				Main.getMain().printDebugLine("ERROR: This world does not exist! Shutting down, please provide a world!");
+				return;
+			}
+			
+			WorldUtils.loadWorld(id);
+		}
+
+		this.gameState = GameStateEnum.WAITING;
+	}
+	
 	
 	
 }
